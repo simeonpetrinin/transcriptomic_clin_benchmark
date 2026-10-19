@@ -40,6 +40,7 @@
 /scripts/debug_external_fold.R
 /scripts/calibrate_machines.R
 /scripts/run_weekend.R
+/scripts/check_domain_similarity.R
 
 # never upload
 .Rhistory
