@@ -1,14 +1,17 @@
 #Example run
-#Reruns TCGA-LAML from data/processed/LAML_modelling.rds and compares it with example/LAML_expected_subset_summary.csv.
-#Outputs use the key LAML_example. Run from the project root: source("scripts/run_example.R")
+#Reruns one cancer (LAML or GBM) from data/processed/<CODE>_modelling.rds and compares it with example/<CODE>_expected_subset_summary.csv.
+#Outputs use the key <CODE>_example. Run from the project root: Rscript scripts/run_example.R LAML (or GBM);
+#source("scripts/run_example.R") runs LAML.
 
 source("master.R")
 source(file.path(DIR_SCRIPTS, "02_summarise.R"))
 
-EXAMPLE_CODE <- "LAML"
-EXAMPLE_KEY  <- "LAML_example"
-EXPECTED     <- file.path("example", "LAML_expected_subset_summary.csv")
-EXAMPLE_TOL  <- 1e-6  #largest allowed absolute difference
+EXAMPLE_CODE <- commandArgs(trailingOnly = TRUE)[1]
+if (is.na(EXAMPLE_CODE)) EXAMPLE_CODE <- "LAML"
+if (!EXAMPLE_CODE %in% c("LAML", "GBM")) stop("the example runs LAML or GBM")
+EXAMPLE_KEY  <- paste0(EXAMPLE_CODE, "_example")
+EXPECTED     <- file.path("example", paste0(EXAMPLE_CODE, "_expected_subset_summary.csv"))
+EXAMPLE_TOL  <- 1e-3  #largest allowed absolute difference; results are reported to three decimals
 
 #remove outputs and checkpoints of an earlier example run
 unlink(c(path_results(EXAMPLE_KEY), path_summary(EXAMPLE_KEY), path_timing(EXAMPLE_KEY), path_manifest(EXAMPLE_KEY),
@@ -29,7 +32,7 @@ m <- merge(old[, c("arm", "subset_id", cols)], new[, c("arm", "subset_id", cols)
 gap <- vapply(cols, function(k) max(abs(m[[paste0(k, "_paper")]] - m[[paste0(k, "_rerun")]]), na.rm = TRUE), numeric(1))
 cat("\nlargest absolute difference from the paper, per quantity:\n"); print(signif(gap, 3))
 if (nrow(m) == nrow(old) && all(gap < EXAMPLE_TOL)) {
-  cat("PASS: the rerun reproduces the paper's LAML results.\n")
+  cat("PASS: the rerun reproduces the paper's", EXAMPLE_CODE, "results.\n")
 } else {
-  stop("DIFFERENT from the paper's LAML results; check that the package versions match renv.lock (renv::status()).")
+  stop("DIFFERENT from the paper's ", EXAMPLE_CODE, " results; check that the package versions match renv.lock (renv::status()).")
 }

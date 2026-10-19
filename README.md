@@ -1,6 +1,6 @@
 # Transcriptomic lift across every clinical baseline
 
-![LAML example](https://github.com/simeonpetrinin/transcriptomic_clin_benchmark/actions/workflows/example.yml/badge.svg)
+![Example runs](https://github.com/simeonpetrinin/transcriptomic_clin_benchmark/actions/workflows/example.yml/badge.svg)
 
 Code for *The added predictive value of transcriptomic data across every clinical baseline: a pan-cancer survival prediction benchmark* (Petrinin and Baev, in preparation).
 
@@ -16,8 +16,8 @@ For 21 TCGA cancers and 9 external cohorts, every combination of a prespecified 
 | `R/` | data loading, clinical subsets, models, metrics, cross-validation |
 | `scripts/` | summaries, rescue run, robustness run, sensitivity analyses, audits |
 | `figure_generation/` | Python scripts for Figures 2-7 and Supplementary Figures S1-S4 |
-| `example/` | the paper's LAML results, used by the example run |
-| `data/processed/LAML_modelling.rds` | LAML modelling data for the example run |
+| `example/` | the paper's LAML and GBM results, used by the example runs |
+| `data/processed/LAML_modelling.rds`, `GBM_modelling.rds` | modelling data for the example runs |
 | `results/robustness_specs.csv` | clinical subsets used in the robustness run |
 | `renv.lock`, `requirements.txt` | R and Python package versions |
 
@@ -27,14 +27,14 @@ For 21 TCGA cancers and 9 external cohorts, every combination of a prespecified 
 - Python 3.13.9 for the figures: `python -m pip install -r requirements.txt`. Figures 3-7, S3 and S4 use the Inter font (https://rsms.me/inter/); without it, matplotlib falls back to DejaVu Sans and the layout shifts slightly.
 - Set the number of parallel workers in `settings.txt`.
 
-## Example run (TCGA-LAML, a few minutes)
+## Example runs (TCGA-LAML and TCGA-GBM, a few minutes each)
 
 ```r
 renv::restore()
 source("scripts/run_example.R")
 ```
 
-Reruns the full LAML analysis (7 clinical subsets plus the RNA-only model, 10 repeats x 5 folds) from the bundled data and compares it with `example/LAML_expected_subset_summary.csv`. It prints `PASS` or stops with an error. The same check runs on GitHub Actions on every push (badge above). LAML needed no refitting with `penalized`, so the rescue step is not exercised by this example.
+Reruns the full LAML analysis (7 clinical subsets plus the RNA-only model, 10 repeats x 5 folds) from the bundled data and compares it with `example/LAML_expected_subset_summary.csv`. For GBM, run `Rscript scripts/run_example.R GBM` from the project root. Each run prints `PASS` when every C-index and IBS value is within 0.001 of the paper's, or stops with an error. Both checks run on GitHub Actions on every push (badge above). Neither cancer needed refitting with `penalized`, so the rescue step is not exercised by these examples.
 
 ## Full reproduction
 

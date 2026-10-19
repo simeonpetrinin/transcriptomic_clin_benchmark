@@ -22,13 +22,14 @@
 !/renv/settings.json
 !/renv/.gitignore
 
-# LAML example
+# LAML and GBM examples
 !/example/
 !/data/
 /data/*
 !/data/processed/
 /data/processed/*
 !/data/processed/LAML_modelling.rds
+!/data/processed/GBM_modelling.rds
 
 # robustness subsets
 !/results/
