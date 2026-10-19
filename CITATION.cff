@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite it as below."
+title: "Code for: The added predictive value of transcriptomic data across every clinical baseline: a pan-cancer survival prediction benchmark"
+authors:
+  - family-names: Petrinin
+    given-names: Simeon
+    affiliation: American College of Sofia
+  - family-names: Baev
+    given-names: Momchil
+    affiliation: New Bulgarian University
+version: "1.0"
+date-released: "2026-10-19"
+license: MIT
+repository-code: "https://github.com/simeonpetrinin/transcriptomic_clin_benchmark"
+keywords:
+  - survival prediction
+  - transcriptomics
+  - TCGA
+  - benchmark
+  - specification curve

@@ -3,6 +3,7 @@
 !/.gitignore
 !/README.md
 !/LICENSE
+!/CITATION.cff
 !/master.R
 !/paths.R
 !/external_master.R
