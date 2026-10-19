@@ -1,0 +1,49 @@
+# code only; data and results are on Zenodo
+/*
+!/.gitignore
+!/README.md
+!/LICENSE
+!/master.R
+!/paths.R
+!/external_master.R
+!/settings.txt
+!/renv.lock
+!/.Rprofile
+!/requirements.txt
+!/R/
+!/scripts/
+!/figure_generation/
+!/.github/
+
+# renv
+!/renv/
+/renv/*
+!/renv/activate.R
+!/renv/settings.json
+!/renv/.gitignore
+
+# LAML example
+!/example/
+!/data/
+/data/*
+!/data/processed/
+/data/processed/*
+!/data/processed/LAML_modelling.rds
+
+# robustness subsets
+!/results/
+/results/*
+!/results/robustness_specs.csv
+
+# development files
+/R/discover_clinical_chat.R
+/scripts/debug_external_fold.R
+/scripts/calibrate_machines.R
+/scripts/run_weekend.R
+
+# never upload
+.Rhistory
+.RData
+.Rproj.user/
+__pycache__/
+*.pyc

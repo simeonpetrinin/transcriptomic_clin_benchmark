@@ -1,0 +1,3 @@
+# Project settings, read by paths.R at start-up. One "name = value" per line; # starts a comment.
+# workers: parallel R processes used by the lattice and every runner script (1 = sequential).
+workers = 6
