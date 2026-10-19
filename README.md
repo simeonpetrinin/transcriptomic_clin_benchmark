@@ -15,7 +15,7 @@ For 21 TCGA cancers and 9 external cohorts, every combination of a prespecified 
 | `paths.R`, `settings.txt` | file paths; number of parallel workers |
 | `R/` | data loading, clinical subsets, models, metrics, cross-validation |
 | `scripts/` | summaries, rescue run, robustness run, sensitivity analyses, audits |
-| `figure_generation/` | Python scripts for Figures 2-7 and the supplementary runtime and gene-sweep figures |
+| `figure_generation/` | Python scripts for Figures 2-7 and Supplementary Figures S1-S4 |
 | `example/` | the paper's LAML results, used by the example run |
 | `data/processed/LAML_modelling.rds` | LAML modelling data for the example run |
 | `results/robustness_specs.csv` | clinical subsets used in the robustness run |
@@ -24,7 +24,7 @@ For 21 TCGA cancers and 9 external cohorts, every combination of a prespecified 
 ## Requirements
 
 - R 4.6.1. Package versions are pinned in `renv.lock`; restore them with `renv::restore()`. `master.R` stops if the library does not match the lockfile.
-- Python 3.13.9 for the figures: `python -m pip install -r requirements.txt`. Figures 3-7 and the supplementary figures use the Inter font (https://rsms.me/inter/); without it, matplotlib falls back to DejaVu Sans and the layout shifts slightly.
+- Python 3.13.9 for the figures: `python -m pip install -r requirements.txt`. Figures 3-7, S3 and S4 use the Inter font (https://rsms.me/inter/); without it, matplotlib falls back to DejaVu Sans and the layout shifts slightly.
 - Set the number of parallel workers in `settings.txt`.
 
 ## Example run (TCGA-LAML, a few minutes)
@@ -92,9 +92,10 @@ Run from the project root after the analyses above. Each script reads `results/`
 | 5 | `python figure_generation/fig5.py` |
 | 6 | `python figure_generation/fig6.py` |
 | 7 | `python figure_generation/fig7.py` |
-| runtime (supplement) | `python figure_generation/runtime.py` |
-| gene-count sweep (supplement) | `python figure_generation/gene_sweep.py` |
-| Shapley values per cancer, specification curves, T/N/M with and without stage (supplement) | `python figure_generation/variable_importance.py` |
+| S1 | `python figure_generation/gene_sweep.py` |
+| S2 | `python figure_generation/runtime.py` |
+| S3, S4 | `python figure_generation/external_ibs_dcal.py` |
+| extra outputs, not in the paper: per-cancer Shapley values, specification curves, T/N/M with and without stage | `python figure_generation/variable_importance.py` |
 
 `common.py` holds the data loading shared by Figures 2-4.
 

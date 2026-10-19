@@ -1,4 +1,4 @@
-#Clinical variable importance from the full subset lattice, no refitting (Figure 4 A-B and supplementary figures)
+#Clinical variable importance from the full subset lattice, no refitting (Figure 4 A-B and extra per-cancer figures)
 #Exact Shapley values per cancer for clinical-only C (empty set = 0.5) and for RNA's lift (empty set = the RNA-only lift),
 #Shapley interaction index for every pair, and the share of the lattice explained by single variables and by pairs
 #Intervals: values per outer fold, 90% interval with the Nadeau-Bengio correction, compared with +-0.01
@@ -245,7 +245,7 @@ def draw_grid(fig, ax, R, game, title, fmt, unit, shared, order_c, order_v, Bv=N
     ax.tick_params(length=0); ax.set_title(title, fontsize=10, color=INK, loc="left")
     cb = fig.colorbar(im, ax=ax, fraction=0.02, pad=0.01); cb.outline.set_visible(False); cb.ax.tick_params(labelsize=7, colors=INK2)
 
-#supplementary: per cancer, every variable's fold mean and 90% interval
+#per cancer, every variable's fold mean and 90% interval
 def dot_figure(R, B, game, xlab, out_png):
     d = R[R.game == game]; codes = d.drop_duplicates("cancer").sort_values("v_full", ascending=False).cancer.tolist()
     ncol = 4; nrow = int(np.ceil(len(codes) / ncol))
@@ -268,7 +268,7 @@ def dot_figure(R, B, game, xlab, out_png):
     fig.supxlabel(xlab, fontsize=9, color=INK2)
     plt.tight_layout(rect=(0, 0.02, 1, 1)); plt.savefig(out_png, facecolor=SURF); plt.close(fig)
 
-#supplementary, one per cancer: specification curve of RNA's lift with the variables of each subset underneath
+#one per cancer: specification curve of RNA's lift with the variables of each subset underneath
 def spec_curve(code, s, full, anchor, out_png):
     d = s[s["mask"] != 0].sort_values("delta_c").reset_index(drop=True); x = np.arange(len(d))
     fig, (a1, a2) = plt.subplots(2, 1, figsize=(12, 3.2 + 0.24 * len(full)), dpi=150, sharex=True,
@@ -291,7 +291,7 @@ def spec_curve(code, s, full, anchor, out_png):
     a2.set_xlabel("Clinical baselines, ranked by ΔC", fontsize=9, color=INK2); a2.tick_params(length=0)
     plt.savefig(out_png, facecolor=SURF, bbox_inches="tight"); plt.close(fig)
 
-#supplementary: what T, N and M add to the clinical C, in subsets without vs with stage
+#what T, N and M add to the clinical C, in subsets without vs with stage
 def tnm_figure(T, out_png):
     codes = T.cancer.unique().tolist(); ncol = 5; nrow = int(np.ceil(len(codes) / ncol))
     fig, axes = plt.subplots(nrow, ncol, figsize=(17, 2.9 * nrow), dpi=150); fig.patch.set_facecolor(SURF)
@@ -381,7 +381,7 @@ def main_figure(R, P, A, B, out_png):
     fig.text(0.07, 0.505, "Are the variables additive?", fontsize=12, color=INK, fontweight="bold")
     plt.savefig(out_png, facecolor=SURF); plt.close(fig)
 
-#supplementary: every cancer's interaction matrix, upper triangle clinical C, lower triangle RNA's lift
+#every cancer's interaction matrix, upper triangle clinical C, lower triangle RNA's lift
 def interaction_by_cancer(R, P, B, out_png):
     codes = R[R.game == "clinical"].drop_duplicates("cancer").sort_values("v_full", ascending=False).cancer.tolist()
     lim = P.interaction.abs().quantile(0.99) * 100
