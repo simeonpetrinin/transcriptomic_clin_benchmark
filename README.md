@@ -1,6 +1,6 @@
 # Transcriptomic lift across every clinical baseline
 
-![Example runs](https://github.com/simeonpetrinin/transcriptomic_clin_benchmark/actions/workflows/example.yml/badge.svg)
+![Example runs](https://github.com/simeonpetrinin/transcriptomic_clin_benchmark/actions/workflows/example.yml/badge.svg) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23483562.svg)](https://doi.org/10.5281/zenodo.23483562)
 
 Code for *The added predictive value of transcriptomic data across every clinical baseline: a pan-cancer survival prediction benchmark* (Petrinin and Baev, in preparation).
 
@@ -98,6 +98,10 @@ Run from the project root after the analyses above. Each script reads `results/`
 | extra outputs, not in the paper: per-cancer Shapley values, specification curves, T/N/M with and without stage | `python figure_generation/variable_importance.py` |
 
 `common.py` holds the data loading shared by Figures 2-4.
+
+## Code archive
+
+This code (release v1.0) is archived on Zenodo: [doi:10.5281/zenodo.23483562](https://doi.org/10.5281/zenodo.23483562).
 
 ## Data and results
 
