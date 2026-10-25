@@ -11,7 +11,7 @@ ROBUST_ARMS <- c("forest", "coxboost", "ridge", "score")
 ROBUST_FLAGS <- c(forest = "RUN_FOREST_ARM", coxboost = "RUN_COXBOOST_ARM",
                   ridge = "RUN_RIDGE_ARM", score = "RUN_SCORE_ARM")
 
-ROBUST_N_SAMPLED <- 10L  #random lattice subsets per cancer, beside the three fixed specs
+ROBUST_N_SAMPLED <- 80L  #random lattice subsets per cancer, beside the three fixed specs (sized by check_sample_robustness.R)
 ROBUST_SPECS_FILE <- file.path(DIR_RESULTS, "robustness_specs.csv")  #the subsets used in the paper
 ROBUST_SEED      <- 20260928L  #fixed seed for the sample, set before any robustness result
 

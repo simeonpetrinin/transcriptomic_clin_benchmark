@@ -91,7 +91,16 @@ apply_rescue <- function(res, key) {
   if (anyNA(i) && key == code) stop(sum(is.na(i)), " rescue cells not found in ", key)
   r <- r[!is.na(i), ]; i <- i[!is.na(i)]
   #same split, same clinical model: the clinical C must agree exactly
-  if (max(abs(res$c_clin[i] - r$c_clin), na.rm = TRUE) > 1e-9) stop("clinical C differs between ", key, " and the rescue")
+  gap  <- abs(res$c_clin[i] - r$c_clin)
+  same <- (gap <= 1e-9) %in% TRUE  #NA counts as different
+  if (key == code) {
+    if (max(gap, na.rm = TRUE) > 1e-9) stop("clinical C differs between ", key, " and the rescue")
+  } else if (!all(same)) {
+    #robustness run (fitted on another machine): the few cells whose clinical fit differs keep their own fused result
+    cat(sprintf("[rescue] %s: %d cells not overlaid, clinical C differs from the main run (largest gap %.2g)\n",
+                key, sum(!same), max(gap, na.rm = TRUE)))
+    r <- r[same, ]; i <- i[same]
+  }
   ok <- is.na(r$error) | !nzchar(as.character(r$error))  #cells still failing stay bad
   i <- i[ok]; r <- r[ok, ]
   res$c_fused[i] <- r$c_fused; res$ibs_fused[i] <- r$ibs_fused

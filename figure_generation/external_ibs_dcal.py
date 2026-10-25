@@ -14,7 +14,8 @@ ap.add_argument("--results-dir", default="results"); ap.add_argument("--out-dir"
 args = ap.parse_args(); os.makedirs(args.out_dir, exist_ok=True)
 RES, OUT = os.path.join(args.results_dir, "external"), os.path.join(args.out_dir, "external")
 COHORTS = [("GSE39582", "COAD"), ("GSE68465", "LUAD"), ("GSE65858", "HNSC"), ("GSE13507", "BLCA"),
-           ("GSE84437", "STAD"), ("BEATAML", "LAML"), ("GSE14520", "LIHC"), ("CGGA_LGG", "LGG"), ("CGGA_GBM", "GBM")]
+           ("GSE84437", "STAD"), ("BEATAML", "LAML"), ("GSE14520", "LIHC"), ("CGGA_LGG", "LGG"), ("CGGA_GBM", "GBM"),
+           ("METABRIC", "BRCA")]
 fl = lambda x: x.astype(str).str.upper().eq("TRUE")
 INK, LINE, PT = "#222222", "#8A8A8A", "#2B6CB0"
 
@@ -25,7 +26,9 @@ def subsets(c):
 
 data = {c: subsets(c) for c, _ in COHORTS}
 for metric, label, lower in [("ibs", "IBS", True), ("dcal", "D-calibration (χ²)", True)]:
-    fig, axes = plt.subplots(3, 3, figsize=(11, 11), dpi=150)
+    nrow = -(-len(COHORTS) // 3)
+    fig, axes = plt.subplots(nrow, 3, figsize=(11, 11 * nrow / 3), dpi=150)
+    for ax in axes.flat[len(COHORTS):]: ax.axis("off")
     for ax, (c, t) in zip(axes.flat, COHORTS):
         s = data[c][[f"{metric}_clin", f"{metric}_fused"]].dropna()
         x, y = s.iloc[:, 0].values, s.iloc[:, 1].values

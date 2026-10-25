@@ -60,9 +60,6 @@ cohorts <- list(
   GSE14520 = function() { d <- read.delim(gzfile(file.path(RAW, "GSE14520", "GSE14520_Extra_Supplement.txt.gz")), colClasses = "character", check.names = FALSE)
   d <- d[d[["Tissue Type"]] == "Tumor", ]; d[!duplicated(d$ID), ] },
   GSE84437 = function() { d <- read_geo(file.path(RAW, "GSE84437", "GSE84437_series_matrix.txt.gz")); d[d$age != "", ] },
-  SCANB    = function() { a <- read_geo(file.path(RAW, "SCANB", "GSE96058-GPL11154_series_matrix.txt.gz"))
-  b <- read_geo(file.path(RAW, "SCANB", "GSE96058-GPL18573_series_matrix.txt.gz"))
-  a[setdiff(names(b), names(a))] <- NA; b[setdiff(names(a), names(b))] <- NA; rbind(a, b[names(a)]) },
   METABRIC = function() { p <- read_cbio(file.path(RAW, "METABRIC", "brca_metabric", "data_clinical_patient.txt"))
   s <- read_cbio(file.path(RAW, "METABRIC", "brca_metabric", "data_clinical_sample.txt"))
   m <- merge(p, s, by = "PATIENT_ID"); m[m$PATIENT_ID %in% readRDS(file.path("data", "processed", "external", "METABRIC_modelling.rds"))$clinical$patient_id, ] },
@@ -73,10 +70,7 @@ cohorts <- list(
   d <- read.delim(unz(z, unzip(z, list = TRUE)$Name[1]), colClasses = "character", check.names = FALSE)
   d[d$PRS_type == "Primary" & d$Grade == "WHO IV", ] },
   BEATAML  = function() { d <- as.data.frame(readxl::read_excel(file.path(RAW, "BEATAML", "beataml_wv1to4_clinical.xlsx"), col_types = "text"))
-  d <- d[d$rnaSeq == "y" & d$diseaseStageAtSpecimenCollection %in% "Initial Diagnosis", ]; d[!duplicated(d$dbgap_subject_id), ] },
-  EMTAB1980 = function() { td <- tempfile(); untar(file.path(RAW, "E-MTAB-1980", "ccrcc_utokyo_2013.tar.gz"), exdir = td)
-  f <- list.files(td, "data_clinical_(patient|sample)\\.txt$", recursive = TRUE, full.names = TRUE)
-  merge(read_cbio(f[grepl("patient", f)]), read_cbio(f[grepl("sample", f)]), by = "PATIENT_ID") }
+  d <- d[d$rnaSeq == "y" & d$diseaseStageAtSpecimenCollection %in% "Initial Diagnosis", ]; d[!duplicated(d$dbgap_subject_id), ] }
 )
 
 all_fields <- list(); summ <- list()
@@ -85,7 +79,7 @@ for (id in names(cohorts)) {
   if (is.null(d)) next
   f <- count_fields(id, d); all_fields[[id]] <- f
   k <- f[f$counted, ]
-  summ[[id]] <- data.frame(cohort = id, source = if (startsWith(id, "GSE") || id == "SCANB") "GEO" else "other", patients = nrow(d),
+  summ[[id]] <- data.frame(cohort = id, source = if (startsWith(id, "GSE")) "GEO" else "other", patients = nrow(d),
                            clinical = sum(k$kind == "clinical"), treatment = sum(k$kind == "treatment"),
                            molecular = sum(k$kind == "molecular"), clinical_fields = paste(k$field[k$kind == "clinical"], collapse = "; "))
 }

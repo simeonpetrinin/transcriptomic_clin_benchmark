@@ -6,9 +6,9 @@ EXTERNAL_VALIDATION_DESIGN <- "parallel_independent_repeated_nested_cv_v1"
 AUTOMATIC_EXTERNAL_COHORTS <- c("GSE68465", "GSE39582", "GSE65858", "GSE13507",
                                 "GSE84437", "GSE14520")
 # Manual download first (see external_data.R): CGGA_LGG, CGGA_GBM, BEATAML
-#the panel reported in the paper, run by default (SCANB, METABRIC and EMTAB1980 remain callable by name)
+#the panel reported in the paper, run by default
 EXTERNAL_PANEL <- c("GSE68465", "GSE39582", "GSE65858", "GSE13507", "GSE14520", "GSE84437",
-                    "CGGA_LGG", "CGGA_GBM", "BEATAML")
+                    "CGGA_LGG", "CGGA_GBM", "BEATAML", "METABRIC")
 EXTERNAL_MAX_TOP_SHARE <- 0.95  #largest category (MISSING counted as a level) at most 95%, as for TCGA
 
 #variable type as stored in the external cohort (TCGA's types are not imposed)

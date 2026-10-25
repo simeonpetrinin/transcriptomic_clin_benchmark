@@ -21,11 +21,15 @@ sweep_genes <- function(codes = names(CANCER_VARS), counts = SWEEP_GENE_COUNTS) 
   invisible(unlist(out))
 }
 
-#robustness sample only (robust_specs(): omics only, age, main set, 10 sampled); IPF-LASSO and offset arms
+#the robustness sample the gene sweep was run on (omics only, age, main set, 10 sampled), drawn before
+#the robustness run grew to 80 sampled subsets (results/robustness_specs.csv)
+GENE_SWEEP_SPECS_FILE <- file.path(DIR_RESULTS, "robustness_specs_gene_sweep.csv")
+
+#robustness sample only (GENE_SWEEP_SPECS_FILE); IPF-LASSO and offset arms
 #Output key <CODE>_robust_g<N> / <CODE>_robust_gall
 sweep_genes_robust <- function(codes = names(CANCER_VARS), counts = SWEEP_GENE_COUNTS) {
-  if (!exists("robust_specs", mode = "function"))
-    stop("robust_specs() is not loaded: source master.R (it sources scripts/run_robustness.R)")
+  if (!exists(".saved_robust_specs", mode = "function"))
+    stop(".saved_robust_specs() is not loaded: source master.R (it sources scripts/run_robustness.R)")
   #sensitivity learners off for the whole sweep, previous settings restored on exit
   flags <- c("RUN_FOREST_ARM", "RUN_COXBOOST_ARM", "RUN_RIDGE_ARM", "RUN_SCORE_ARM")
   old <- mget(flags, envir = .GlobalEnv)
@@ -37,7 +41,10 @@ sweep_genes_robust <- function(codes = names(CANCER_VARS), counts = SWEEP_GENE_C
     cat(sprintf("\n[sweep genes, robustness sample] %s  n_genes = %s  (key %s)\n", code, format(n), key))
     if (!file.exists(path_modelling(code))) build_modelling_data(code)
     dat <- readRDS(path_modelling(code))
-    out[[key]] <- tryCatch({ run_cancer(dat, code, n_genes = n, subsets = robust_specs(code), key = key); "ok" },
+    out[[key]] <- tryCatch({
+      specs <- .saved_robust_specs(code, GENE_SWEEP_SPECS_FILE)
+      if (is.null(specs)) stop("no gene-sweep specs for ", code, " in ", GENE_SWEEP_SPECS_FILE)
+      run_cancer(dat, code, n_genes = n, subsets = specs, key = key); "ok" },
                            error = function(e) paste("FAILED:", conditionMessage(e)))
   }
   invisible(unlist(out))

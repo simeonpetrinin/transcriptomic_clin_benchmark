@@ -197,7 +197,7 @@ def layout(R):
     return shared, order_c, order_v
 
 #one Shapley grid: variables x cancers, cancer-specific variables summed in the last row, median on the right
-def draw_grid(fig, ax, R, game, title, fmt, unit, shared, order_c, order_v, Bv=None):
+def draw_grid(fig, ax, R, game, title, fmt, unit, shared, order_c, order_v, Bv=None, fs=1.0):  #fs scales every font size
     rows_lab = order_v + ["cancer-specific (sum)"]
     d = R[R.game == game]
     M = np.full((len(rows_lab), len(order_c)), np.nan)
@@ -231,19 +231,19 @@ def draw_grid(fig, ax, R, game, title, fmt, unit, shared, order_c, order_v, Bv=N
             if np.isnan(M[i, j]): continue
             strong = box.get((i, j), "above") in ("above", "below")
             dark = strong and min(abs(M[i, j]) / lim, 1) > 0.55
-            ax.text(j, i, fmt(M[i, j]), ha="center", va="center", fontsize=6.5, color="white" if dark else (INK if strong else INK2),
+            ax.text(j, i, fmt(M[i, j]), ha="center", va="center", fontsize=6.5 * fs, color="white" if dark else (INK if strong else INK2),
                     fontweight="bold" if strong else "normal")
     for i in range(M.shape[0]):  #pan-cancer median and the number of cancers with the variable
         if np.isfinite(M[i]).any():
-            ax.text(len(order_c) - 0.3, i, f"{fmt(np.nanmedian(M[i]))}  (n={int(np.isfinite(M[i]).sum())})", va="center", fontsize=7, color=INK, ha="left")
-    ax.text(len(order_c) - 0.3, -0.9, "median", fontsize=7.5, color=INK2, ha="left")
-    ax.axhline(len(order_v) - 0.5, color=INK2, lw=0.8)
-    ax.set_xticks(range(len(order_c))); ax.set_xticklabels(order_c, rotation=90, fontsize=8, color=INK)
-    ax.set_yticks(range(len(rows_lab))); ax.set_yticklabels(rows_lab, fontsize=8.5, color=INK)
+            ax.text(len(order_c) - 0.3, i, f"{fmt(np.nanmedian(M[i]))}  (n={int(np.isfinite(M[i]).sum())})", va="center", fontsize=7 * fs, color=INK, ha="left")
+    ax.text(len(order_c) - 0.3, -0.9, "median", fontsize=7.5 * fs, color=INK2, ha="left")
+    ax.axhline(len(order_v) - 0.5, color=INK2, lw=0.8 * fs)
+    ax.set_xticks(range(len(order_c))); ax.set_xticklabels(order_c, rotation=90, fontsize=8 * fs, color=INK)
+    ax.set_yticks(range(len(rows_lab))); ax.set_yticklabels(rows_lab, fontsize=8.5 * fs, color=INK)
     ax.set_xlim(-0.5, len(order_c) + 2.2)
     for sp in ax.spines.values(): sp.set_visible(False)
-    ax.tick_params(length=0); ax.set_title(title, fontsize=10, color=INK, loc="left")
-    cb = fig.colorbar(im, ax=ax, fraction=0.02, pad=0.01); cb.outline.set_visible(False); cb.ax.tick_params(labelsize=7, colors=INK2)
+    ax.tick_params(length=0); ax.set_title(title, fontsize=10 * fs, color=INK, loc="left")
+    cb = fig.colorbar(im, ax=ax, fraction=0.02, pad=0.01); cb.outline.set_visible(False); cb.ax.tick_params(labelsize=7 * fs, colors=INK2)
 
 #per cancer, every variable's fold mean and 90% interval
 def dot_figure(R, B, game, xlab, out_png):
@@ -312,25 +312,27 @@ def tnm_figure(T, out_png):
     plt.tight_layout(rect=(0, 0, 1, 0.96)); plt.savefig(out_png, facecolor=SURF); plt.close(fig)
 
 #additivity per cancer: share of the lattice's variation explained by single variables, and with every pair added
-def draw_additivity(ax, A, order_c):
+def draw_additivity(ax, A, order_c, fs=1.0):  #fs scales font, marker and line sizes
     style(ax); y = np.arange(len(order_c))
     for game, col, dy in [("clinical", "#2a78d6", -0.17), ("lift", "#eb6834", 0.17)]:
         d = A[A.game == game].set_index("cancer").loc[order_c]
-        ax.hlines(y + dy, d.r2_main, d.r2_main_pairs, color=col, lw=1.6, alpha=0.6)
-        ax.scatter(d.r2_main, y + dy, s=30, color=col, zorder=3)
-        ax.scatter(d.r2_main_pairs, y + dy, s=30, facecolor=SURF, edgecolor=col, lw=1.6, zorder=3)
-        ax.scatter(d.noise_ceiling, y + dy, marker="|", s=110, color=INK, lw=1.6, zorder=4)  #the most any model could explain
-    ax.set_yticks(y); ax.set_yticklabels(order_c, fontsize=8, color=INK); ax.invert_yaxis(); ax.set_xlim(0, 1.02)
-    ax.set_xlabel("Share of the variation across all subsets explained", fontsize=9, color=INK2)
+        ax.hlines(y + dy, d.r2_main, d.r2_main_pairs, color=col, lw=1.6 * fs, alpha=0.6)
+        ax.scatter(d.r2_main, y + dy, s=30 * fs ** 2, color=col, zorder=3)
+        ax.scatter(d.r2_main_pairs, y + dy, s=30 * fs ** 2, facecolor=SURF, edgecolor=col, lw=1.6 * fs, zorder=3)
+        ax.scatter(d.noise_ceiling, y + dy, marker="|", s=110 * fs ** 2, color=INK, lw=1.6 * fs, zorder=4)  #the most any model could explain
+    ax.set_yticks(y); ax.set_yticklabels(order_c, fontsize=8 * fs, color=INK); ax.invert_yaxis(); ax.set_xlim(0, 1.02)
+    ax.set_xlabel("Share of the variation across all subsets explained", fontsize=9 * fs, color=INK2)
     ax.grid(axis="x", color=GRID, lw=.5); ax.set_axisbelow(True)
     hs = [plt.Line2D([], [], color="#2a78d6", marker="o", lw=0), plt.Line2D([], [], color="#eb6834", marker="o", lw=0),
           plt.Line2D([], [], color=INK2, marker="o", lw=0), plt.Line2D([], [], color=INK2, marker="o", lw=0, mfc=SURF),
-          plt.Line2D([], [], color=INK, marker="|", lw=0, markersize=10, mew=1.6)]
-    ax.legend(hs, ["clinical-only C", "RNA's lift (ΔC)", "variables one by one", "plus every pair", "noise ceiling"], frameon=False, fontsize=8, loc="lower left")
-    ax.set_title("How additive is each cancer's lattice?", fontsize=10, color=INK, loc="left")
+          plt.Line2D([], [], color=INK, marker="|", lw=0, markersize=10 * fs, mew=1.6 * fs)]
+    lab = ["clinical-only C", "RNA's lift (ΔC)", "variables one by one", "plus every pair", "noise ceiling"]
+    if fs >= 1: ax.legend(hs, lab, frameon=False, fontsize=8 * fs, loc="lower left")
+    else: ax.legend(hs, lab, frameon=False, fontsize=8 * fs, loc="upper center", bbox_to_anchor=(0.5, -0.16), ncol=3, columnspacing=1.0, handletextpad=0.3)
+    ax.set_title("How additive is each cancer's lattice?", fontsize=10 * fs, color=INK, loc="left")
 
 #pairs across cancers: share of cancers in each box; RNA's lift is sign-flipped so that overlap means the same in both triangles
-def draw_triangle(fig, ax, P, shared_order):
+def draw_triangle(fig, ax, P, shared_order, fs=1.0):  #fs scales every font size
     #P: fold-level pair table, one row per cancer, game and pair; each cell is a bar split into overlap | additive | works together | can't tell
     k = len(shared_order); ax.set_facecolor(SURF)
     seg_col = [INTERACT(0.08), ADDITIVE, INTERACT(0.92), GREY_NEGL]
@@ -349,36 +351,37 @@ def draw_triangle(fig, ax, P, shared_order):
                     w = 0.86 * n_part / len(x)
                     if w > 0: ax.add_patch(plt.Rectangle((left, r - 0.32), w, 0.36, facecolor=col, edgecolor=SURF, lw=0.6))
                     left += w
-                ax.text(c, r + 0.27, f"of {len(x)}", ha="center", va="center", fontsize=6, color=INK2)
-    ax.plot([-0.5, k - 0.5], [-0.5, k - 0.5], color=INK2, lw=0.8)
+                ax.text(c, r + 0.27, f"of {len(x)}", ha="center", va="center", fontsize=6 * fs, color=INK2)
+    ax.plot([-0.5, k - 0.5], [-0.5, k - 0.5], color=INK2, lw=0.8 * fs)
     ax.set_xlim(-0.5, k - 0.5); ax.set_ylim(k - 0.5, -0.5); ax.set_aspect("equal")
-    ax.set_xticks(range(k)); ax.set_xticklabels(shared_order, rotation=90, fontsize=8, color=INK)
-    ax.set_yticks(range(k)); ax.set_yticklabels(shared_order, fontsize=8, color=INK)
+    ax.set_xticks(range(k)); ax.set_xticklabels(shared_order, rotation=90, fontsize=8 * fs, color=INK)
+    ax.set_yticks(range(k)); ax.set_yticklabels(shared_order, fontsize=8 * fs, color=INK)
     for sp in ax.spines.values(): sp.set_visible(False)
     ax.tick_params(length=0)
     ax.set_title("Pairs across cancers (90% corrected interval vs ±0.01)\n"
-                 "upper right: clinical-only C   ·   lower left: what the pair takes from RNA's lift", fontsize=10, color=INK, loc="left")
+                 "upper right: clinical-only C\nlower left: what the pair takes from RNA's lift", fontsize=10 * fs, color=INK, loc="left",
+                 x=0 if fs >= 1 else -0.3)
     hs = [plt.Rectangle((0, 0), 1, 1, facecolor=c, edgecolor="none") for c in seg_col]
-    ax.legend(hs, ["overlap", "additive (within ±0.01)", "work together", "can't tell"], loc="upper center", bbox_to_anchor=(0.5, -0.12),
-              ncol=4, frameon=False, fontsize=8.5)
+    ax.legend(hs, ["overlap", "additive (within ±0.01)", "work together", "can't tell"], loc="upper center", bbox_to_anchor=(0.5, -0.12 if fs >= 1 else -0.2),
+              ncol=4 if fs >= 1 else 2, frameon=False, fontsize=8.5 * fs)
 
-#Figure 4 A-B: Shapley values (clinical share | change in RNA's lift) and additivity (per cancer | pairwise interactions)
-def main_figure(R, P, A, B, out_png):
+#Figure 4 A-B: Shapley values (clinical share, then change in RNA's lift) and additivity (per cancer | pairwise interactions)
+#drawn at print size (170 mm wide), so the font sizes are the printed sizes
+def main_figure(R, P, A, B, out_png, fs=0.75):
     shared, order_c, order_v = layout(R)
-    fig = plt.figure(figsize=(22, 16.5), dpi=150); fig.patch.set_facecolor(SURF)
-    gs = fig.add_gridspec(2, 2, height_ratios=[1, 1.15], width_ratios=[1, 1], hspace=0.28, wspace=0.18,
-                          left=0.07, right=0.97, top=0.95, bottom=0.07)
-    a1, a2 = fig.add_subplot(gs[0, 0]), fig.add_subplot(gs[0, 1])
-    b1, b2 = fig.add_subplot(gs[1, 0]), fig.add_subplot(gs[1, 1])
+    fig = plt.figure(figsize=(6.7, 9.4), dpi=300); fig.patch.set_facecolor(SURF)
+    gs = fig.add_gridspec(3, 2, height_ratios=[1, 1, 1.25], width_ratios=[1.1, 1], hspace=0.42, wspace=0.3,
+                          left=0.15, right=0.93, top=0.955, bottom=0.085)
+    a1, a2 = fig.add_subplot(gs[0, :]), fig.add_subplot(gs[1, :])
+    b1, b2 = fig.add_subplot(gs[2, 0]), fig.add_subplot(gs[2, 1])
     Bv, Bp = B[B.kind == "variable"], B[B.kind == "pair"]
-    draw_grid(fig, a1, R, "clinical", "Share of the full clinical baseline (% of C above 0.5)", lambda x: f"{100 * x:.0f}", "share", shared, order_c, order_v, Bv)
-    draw_grid(fig, a2, R, "lift", "Change in RNA's lift (ΔC × 100; negative = takes over RNA's lift)", lambda x: f"{100 * x:.1f}", "shapley", shared, order_c, order_v, Bv)
-    draw_additivity(b1, A, order_c)
-    draw_triangle(fig, b2, Bp, order_v)
-    for ax, letter in [(a1, "A"), (b1, "B")]:
-        ax.text(-0.09, 1.04, letter, transform=ax.transAxes, fontsize=18, fontweight="bold", color=INK)
-    fig.text(0.07, 0.975, "Shapley values", fontsize=12, color=INK, fontweight="bold")
-    fig.text(0.07, 0.505, "Are the variables additive?", fontsize=12, color=INK, fontweight="bold")
+    draw_grid(fig, a1, R, "clinical", "Share of the full clinical baseline (% of C above 0.5)", lambda x: f"{100 * x:.0f}", "share", shared, order_c, order_v, Bv, fs=fs)
+    draw_grid(fig, a2, R, "lift", "Change in RNA's lift (ΔC × 100; negative = takes over RNA's lift)", lambda x: f"{100 * x:.1f}", "shapley", shared, order_c, order_v, Bv, fs=fs)
+    draw_additivity(b1, A, order_c, fs=fs)
+    draw_triangle(fig, b2, Bp, order_v, fs=fs)
+    for ax, letter, label in [(a1, "A", "Shapley values"), (b1, "B", "Are the variables additive?")]:
+        ax.text(-0.14 if ax is a1 else -0.24, 1.13 if ax is a1 else 1.09, letter, transform=ax.transAxes, fontsize=11, fontweight="bold", color=INK)
+        ax.text(-0.10 if ax is a1 else -0.17, 1.13 if ax is a1 else 1.09, label, transform=ax.transAxes, fontsize=8, fontweight="bold", color=INK)
     plt.savefig(out_png, facecolor=SURF); plt.close(fig)
 
 #every cancer's interaction matrix, upper triangle clinical C, lower triangle RNA's lift

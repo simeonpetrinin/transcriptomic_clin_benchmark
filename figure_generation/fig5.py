@@ -1,139 +1,51 @@
-#Figure 5: clinical-only C against clinical + RNA C for every clinical subset, 21 TCGA cancers (IPF-LASSO and offset)
-#Per panel: share above the diagonal, mean |dC|, crossing point and slope, with 95% intervals from resampling repeats,
-#and the noise-checked slope (slope divided by the reliability of clinical C)
+#Figure 5: clinical C and RNA's lift by number of clinical variables (IPF-LASSO, rescued results)
+#A clinical C as a share of the cancer's largest gain over 0.5, B RNA's lift; one thin line per cancer, thick line = median over cancers
+#Drawn at print size (170 mm wide), so the font sizes are the printed sizes
 #Usage, from the project root: python figure_generation/fig5.py --results-dir results --out-dir figures
-import argparse, glob, os
-import pandas as pd, numpy as np, matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
+import argparse, os
+import pandas as pd
+import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
 matplotlib.rcParams["font.family"] = ["Inter", "sans-serif", "DejaVu Sans"]  #font of the paper's figures; DejaVu Sans if Inter is not installed
-from matplotlib.lines import Line2D
+from common import collect
 
-ap = argparse.ArgumentParser()
-ap.add_argument("--results-dir", default="results"); ap.add_argument("--out-dir", default="figures")
-args = ap.parse_args(); os.makedirs(args.out_dir, exist_ok=True)
-R = os.path.join(args.results_dir, "")
-OUT = os.path.join(args.out_dir, "")
-DELTA = 0.01  #fixed equivalence margin
-B = 1000  #resamples of repeats
-rng = np.random.default_rng(20261011)  #fixed seed so the intervals are reproducible
+SURF, INK, INK2, MUTED, GRID, BAND = "#fcfcfb", "#0b0b0b", "#52514e", "#898781", "#e1e0d9", "#efeee9"
+MARGIN = 0.01
+MIN_CANCERS = 5  #median over cancers only where at least this many cancers have that many variables
 
-def fit(x, y):  #OLS line y = a*x + b, None if too few points
-    m = np.isfinite(x) & np.isfinite(y)
-    return np.polyfit(x[m], y[m], 1) if m.sum() > 2 else None
+def curves(D, order):
+    rows = []
+    for c in order:
+        s = D[c]["s"]; top = s.c_ref.max() - 0.5
+        g = s.groupby("n_vars").agg(med=("c_ref", "median"), best=("c_ref", "max"), lift=("delta_c", "median"))
+        g["med_share"], g["best_share"] = (g.med - 0.5) / top, (g.best - 0.5) / top
+        rows += [dict(cancer=c, n_vars=k, med_share=r.med_share, best_share=r.best_share, lift=r.lift) for k, r in g.iterrows()]
+    return pd.DataFrame(rows)
 
-def crossing(a, b, lo, hi):  #x where the line meets y = x, NaN if outside [lo, hi] or parallel
-    if abs(1 - a) < 1e-9: return np.nan
-    x = b / (1 - a)
-    return x if lo <= x <= hi else np.nan
+def figure(R, out_png):
+    fig, (a, b) = plt.subplots(1, 2, figsize=(6.7, 2.9), dpi=300, gridspec_kw=dict(wspace=0.32)); fig.patch.set_facecolor(SURF)
+    for ax in (a, b):
+        ax.set_facecolor(SURF); ax.grid(color=GRID, lw=0.4); ax.set_axisbelow(True); ax.tick_params(colors=INK2, labelsize=7, width=0.6, length=2.5)
+        for sp in ["top", "right"]: ax.spines[sp].set_visible(False)
+        for sp in ["left", "bottom"]: ax.spines[sp].set_linewidth(0.6)
+        ax.set_xlabel("Number of clinical variables in the baseline", fontsize=7.5, color=INK2)
+    for c, g in R.groupby("cancer"):
+        a.plot(g.n_vars, g.med_share, color="#9cbfe9", lw=0.5, alpha=0.8); b.plot(g.n_vars, g.lift, color="#f2b98a", lw=0.5, alpha=0.8)
+    M = R.groupby("n_vars").median(numeric_only=True); cnt = R.groupby("n_vars").cancer.nunique()
+    keep = cnt[cnt >= MIN_CANCERS].index
+    a.plot(keep, M.loc[keep, "med_share"], color="#1c5aa6", lw=1.6, marker="o", ms=2.5, label="median subset of that size")
+    a.plot(keep, M.loc[keep, "best_share"], color="#1c5aa6", lw=1.0, ls="--", label="best subset of that size\n(picked after seeing results)")
+    b.plot(keep, M.loc[keep, "lift"], color="#c4561a", lw=1.6, marker="o", ms=2.5, label="median over cancers")
+    b.axhspan(-MARGIN, MARGIN, color=BAND, lw=0, zorder=0); b.axhline(0, color=MUTED, lw=0.6)
+    a.set_ylabel("Share of the cancer's largest\nclinical C gain over 0.5", fontsize=7.5, color=INK2)
+    b.set_ylabel("RNA's lift in Uno's C\n(median subset of that size)", fontsize=7.5, color=INK2)
+    a.legend(frameon=False, fontsize=6.5, loc="lower right", handlelength=2.2); b.legend(frameon=False, fontsize=6.5, loc="upper right", handlelength=2.2)
+    a.set_title("A  Clinical C grows with each added\n     variable, then levels off", fontsize=8, color=INK, loc="left", fontweight="bold", x=-0.25)
+    b.set_title("B  RNA's lift shrinks as\n     variables are added", fontsize=8, color=INK, loc="left", fontweight="bold", x=-0.25)
+    plt.savefig(out_png, facecolor=SURF, bbox_inches="tight", pad_inches=0.04); plt.close(fig)
 
-def metrics(x, y):  #the panel numbers for one set of subset means
-    a, b = np.polyfit(x, y, 1)
-    d = y - x
-    return dict(slope=a, cross=crossing(a, b, x.min(), x.max()), loss=np.abs(d).mean(),
-                within=(np.abs(d) <= DELTA).mean() * 100, above=(d > 0).mean() * 100)
-
-def load(code):  #subset x repeat matrices of clinical C and IPF-LASSO C, plus subset means for offset
-    p = pd.read_csv(R + code + '_per_repeat.csv')
-    p = p[~p.is_anchor.astype(str).str.upper().eq('TRUE')]
-    f = p[p.arm == 'fused']; o = p[p.arm == 'offset']
-    X = f.pivot(index='subset_id', columns='repeat_id', values='c_ref')
-    Y = f.pivot(index='subset_id', columns='repeat_id', values='c_model').reindex_like(X)
-    off = o.groupby('subset_id').c_model.mean().reindex(X.index)
-    nv = f.groupby('subset_id').n_vars.first().reindex(X.index)
-    s = pd.read_csv(R + code + '_subset_summary.csv')
-    anc = s[(s.arm == 'fused') & s.is_anchor.astype(str).str.upper().eq('TRUE')].iloc[0]
-    return X.values, Y.values, off.values, nv.values, (anc.c_ref, anc.c_model)
-
-codes = sorted(os.path.basename(f).replace('_per_repeat.csv', '') for f in glob.glob(R + '*_per_repeat.csv'))
-codes = [c for c in codes if '_' not in c]  #main lattice only, not the robustness or published runs
-rows = []; panels = {}
-for c in codes:
-    X, Y, off, nv, anc = load(c)
-    ok = np.isfinite(np.nanmean(Y, 1))  #subsets with at least one fitted repeat
-    X, Y, off, nv = X[ok], Y[ok], off[ok], nv[ok]
-    x, y = np.nanmean(X, 1), np.nanmean(Y, 1)
-    m = metrics(x, y)
-    nrep = np.sum(np.isfinite(X), 1)
-    se2 = np.nanvar(X, 1, ddof=1) / nrep  #leftover noise in each subset's clinical C
-    rel = 1 - np.nanmean(se2) / np.var(x, ddof=1)  #reliability: share of the clinical-C spread that is real
-    Rn = X.shape[1]; boot = []
-    for _ in range(B):  #resample repeats with replacement, recompute every subset mean and the metrics
-        idx = rng.integers(0, Rn, Rn)
-        xb, yb = np.nanmean(X[:, idx], 1), np.nanmean(Y[:, idx], 1)
-        g = np.isfinite(xb) & np.isfinite(yb)
-        boot.append(metrics(xb[g], yb[g]))
-    bt = pd.DataFrame(boot)
-    q = lambda k: np.nanpercentile(bt[k], [2.5, 97.5])
-    cr_share = np.isfinite(bt.cross).mean() * 100  #share of resamples where the fit crosses inside the range
-    po = fit(x, off)
-    rows.append(dict(cancer=c, n_subsets=len(x), repeats=Rn, pct_above=round(m['above'], 1),
-                     loss=round(m['loss'], 4), loss_lo=round(q('loss')[0], 4), loss_hi=round(q('loss')[1], 4),
-                     pct_within_0_01=round(m['within'], 1),
-                     slope=round(m['slope'], 3), slope_lo=round(q('slope')[0], 3), slope_hi=round(q('slope')[1], 3),
-                     reliability=round(rel, 3), slope_noise_checked=round(m['slope'] / rel, 3),
-                     cross=None if np.isnan(m['cross']) else round(m['cross'], 4),
-                     cross_lo=None if cr_share == 0 else round(q('cross')[0], 4),
-                     cross_hi=None if cr_share == 0 else round(q('cross')[1], 4),
-                     pct_resamples_crossing=round(cr_share, 1), slope_offset=round(po[0], 3)))
-    panels[c] = (x, y, off, nv, anc, m, po, rows[-1])
-
-nc = 4; nr = int(np.ceil((len(codes) + 1) / nc))
-vmax = max(p[3].max() for p in panels.values()); cmap = plt.cm.viridis; J, O, G = '#c0304f', '#8e5bb5', '#1a8a3c'
-fig, axes = plt.subplots(nr, nc, figsize=(3.6 * nc, 3.7 * nr))
-for ax, c in zip(axes.flat, codes):
-    x, y, off, nv, anc, m, po, r = panels[c]
-    vals = np.r_[x, y, off[np.isfinite(off)], anc]
-    lo, hi = np.nanmin(vals) - 0.01, np.nanmax(vals) + 0.01
-    ax.fill_between([lo, hi], [lo, hi], hi, color='#e8f4ee', zorder=0)
-    ax.plot([lo, hi], [lo, hi], color='#888', lw=0.9, ls=(0, (4, 3)), zorder=1)
-    sz = 5 if len(x) > 500 else 12
-    ax.scatter(x, off, s=sz * 0.6, marker='s', color='#bbb', alpha=0.5, lw=0, zorder=2)
-    ax.scatter(x, y, s=sz, c=nv, cmap=cmap, vmin=0, vmax=vmax, alpha=0.85, lw=0, zorder=3)
-    ax.scatter([anc[0]], [anc[1]], marker='D', s=28, color='#e07b22', zorder=4)
-    xs = np.array([x.min(), x.max()]); pj = np.polyfit(x, y, 1)
-    ax.plot(xs, np.polyval(pj, xs), color=J, lw=1.5, zorder=5)
-    ax.plot(xs, np.polyval(po, xs), color=O, lw=1.5, ls='--', zorder=5)
-    sg = r['slope_noise_checked']  #noise-checked slope, drawn through the centre of the points
-    ax.plot(xs, y.mean() + sg * (xs - x.mean()), color=G, lw=1.4, ls=(0, (1.5, 1.5)), zorder=5)
-    if r['cross'] is not None:
-        ax.scatter([r['cross']], [r['cross']], marker='x', s=40, color=J, lw=1.6, zorder=6)
-        if r['cross_lo'] is not None:  #interval of the crossing point along the diagonal
-            ax.plot([r['cross_lo'], r['cross_hi']], [r['cross_lo'], r['cross_hi']], color=J, lw=3, alpha=0.35, zorder=5)
-    if r['cross'] is not None:  #crossing text in two short lines
-        c1, c2 = f"crosses at {r['cross']:.3f} [{r['cross_lo']:.3f}–{r['cross_hi']:.3f}]", f"in {r['pct_resamples_crossing']:.0f}% of resamples"
-    else:
-        c1, c2 = "no crossing", f"({r['pct_resamples_crossing']:.0f}% of resamples cross)"
-    lines = [(f"offset slope {r['slope_offset']:.2f}", O),  #short lines first, so the block stays below the diagonal
-             (f"noise-checked slope {r['slope_noise_checked']:.2f}", G),
-             (f"slope {r['slope']:.2f} [{r['slope_lo']:.2f}–{r['slope_hi']:.2f}]", J),
-             (f"{r['pct_above']:.0f}% above diagonal", '#2a9d6f' if r['pct_above'] >= 50 else '#c0304f'),
-             (f"{r['pct_within_0_01']:.0f}% within ±0.01", '#333'),
-             (f"mean |ΔC| {r['loss']:.3f} [{r['loss_lo']:.3f}–{r['loss_hi']:.3f}]", '#333'),
-             (c1, J), (c2, J)]  #crossing reads top to bottom
-    n = len(lines)
-    for i, (t, col) in enumerate(lines):  #stacked upwards from the bottom-right corner
-        ax.text(0.97, 0.03 + (n - 1 - i) * 0.052, t, transform=ax.transAxes, fontsize=5.6, color=col, ha='right', va='bottom')
-    ax.set_xlim(lo, hi); ax.set_ylim(lo, hi); ax.set_aspect('equal')
-    ax.set_title(f'{c}  ({int(nv.max())} vars, {r["repeats"]} repeats)', fontsize=9, pad=3)
-    ax.set_xlabel("clinical-only model (Uno's C)", fontsize=7); ax.set_ylabel("clinical + omics (Uno's C)", fontsize=7)
-    ax.tick_params(labelsize=6)
-for ax in axes.flat[len(codes):]: ax.axis('off')
-lg = axes.flat[len(codes)]
-h = [Line2D([], [], marker='o', ls='', color='#666', label='subset, joint penalised fit (IPF-LASSO)'),
-     Line2D([], [], marker='s', ls='', color='#bbb', label='subset, frozen-offset fit'),
-     Line2D([], [], marker='D', ls='', color='#e07b22', label='omics-only anchor'),
-     Line2D([], [], color='#888', ls=(0, (4, 3)), label='identity: omics adds nothing'),
-     Line2D([], [], color=J, label='OLS fit, joint penalised'), Line2D([], [], color=O, ls='--', label='OLS fit, frozen-offset'),
-     Line2D([], [], color=G, ls=(0, (1.5, 1.5)), lw=1.4, label='noise-checked fit, joint penalised'),
-     Line2D([], [], marker='x', ls='', color=J, label='joint fit crosses the identity line'),
-     Line2D([], [], color=J, lw=3, alpha=0.35, label='95% interval of the crossing')]
-lg.legend(handles=h, loc='upper center', frameon=False, fontsize=7, title='markers / lines', title_fontsize=8)
-lg.text(0.5, 0.30, '[ ] = 95% interval from resampling repeats (1,000×)\nnoise-checked = slope ÷ reliability of clinical C',
-        ha='center', va='top', fontsize=6.5, transform=lg.transAxes, color='#333')
-cax = lg.inset_axes([0.08, 0.06, 0.84, 0.045])
-cb = fig.colorbar(plt.cm.ScalarMappable(norm=plt.Normalize(0, vmax), cmap=cmap), cax=cax, orientation='horizontal')
-cb.set_label('number of clinical variables in the baseline', fontsize=7.5); cb.ax.tick_params(labelsize=6.5)
-fig.tight_layout(h_pad=1.2, w_pad=1.0)
-fig.savefig(OUT + 'fig5.png', dpi=160)
-pd.DataFrame(rows).to_csv(OUT + 'fig5_metrics.csv', index=False)
-print(pd.DataFrame(rows)[['cancer', 'repeats', 'loss', 'loss_lo', 'loss_hi', 'slope', 'slope_lo', 'slope_hi',
-                          'slope_noise_checked', 'cross', 'cross_lo', 'cross_hi', 'pct_resamples_crossing']].to_string(index=False))
+if __name__ == "__main__":
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--results-dir", default="results"); ap.add_argument("--out-dir", default="figures")
+    a = ap.parse_args(); os.makedirs(a.out_dir, exist_ok=True)
+    D, order = collect(a.results_dir)
+    figure(curves(D, order), os.path.join(a.out_dir, "fig5.png"))

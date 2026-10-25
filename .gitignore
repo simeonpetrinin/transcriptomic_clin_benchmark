@@ -36,12 +36,12 @@
 !/results/
 /results/*
 !/results/robustness_specs.csv
+!/results/robustness_specs_gene_sweep.csv
 
 # development files
 /R/discover_clinical_chat.R
 /scripts/debug_external_fold.R
 /scripts/calibrate_machines.R
-/scripts/run_weekend.R
 /scripts/check_domain_similarity.R
 
 # never upload

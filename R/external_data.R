@@ -49,8 +49,9 @@ DAYS_PER_MONTH <- 365.25 / 12
 # are declared. Variables are re-audited after loading; a variable below its
 # declared completeness gate or constant variable is excluded loudly in
 # *_variable_audit.csv. Completeness gate 50%, as for TCGA.
-# Cohorts declared here but not in the paper (no usable survival or clinical data after review, or
-# not part of the final panel): SCANB, METABRIC, METABRIC_PR, EMTAB1980.
+# Selection: same inclusion criteria as TCGA (primary tumours untreated at
+# sampling, genome-wide expression, overall survival, core clinical
+# variables); no minimum size.
 EXTERNAL_COHORTS <- list(
   GSE68465 = list(
     cancer = "LUAD", kind = "GEO", accession = "GSE68465", platform = "GPL96",
@@ -80,23 +81,6 @@ EXTERNAL_COHORTS <- list(
     variable_max_top_share = c(M = 1),  #M kept as an exception to the 95% rule (8/165 M1)
     loader = "load_gse13507_external",
     citation = "Kim et al., Mol Cancer 2010; GEO GSE13507"
-  ),
-  #large breast cohorts (not in the paper)
-  # Selection: same inclusion criteria as TCGA (primary tumours untreated at
-  # sampling, genome-wide expression, overall survival, core clinical
-  # variables); no minimum size. Loaders below were written from the public
-  # dataset descriptions and have NOT yet been run against the real files:
-  # every one stops with a list of the available fields if an expected field
-  # is missing, so field names can be fixed from the error message.
-  SCANB = list(
-    cancer = "BRCA", kind = "GEO_SUPPL", accession = "GSE96058",
-    platforms = c("GPL11154", "GPL18573"),
-    expression_file = "GSE96058_gene_expression_3273_samples_and_136_replicates_transformed.csv.gz",
-    expected_n = NA_integer_,
-    variables = c("age", "ER", "PR", "HER2", "grade", "tumor_size", "node_group", "ki67", "node_status"),
-    variable_min_complete = c(ki67 = 0.45),  #Ki67 kept although 47% complete
-    loader = "load_scanb_external",
-    citation = "Brueffer et al., JCO Precis Oncol 2018; GEO GSE96058 (SCAN-B, NCT02306096)"
   ),
   GSE84437 = list(
     cancer = "STAD", kind = "GEO", accession = "GSE84437", platform = "GPL6947",
@@ -144,28 +128,12 @@ EXTERNAL_COHORTS <- list(
     loader = "load_gse14520_external",
     citation = "Roessler et al., Cancer Res 2010; GEO GSE14520"
   ),
-  #clinical data from cBioPortal ccrcc_utokyo_2013 (same patients); ArrayExpress holds sex only
-  EMTAB1980 = list(
-    cancer = "KIRC", kind = "MANUAL", accession = "E-MTAB-1980",
-    expected_n = 101L,
-    variables = c("age", "sex", "grade", "T", "N", "M"),
-    loader = "load_emtab1980_external",
-    citation = "Sato et al., Nat Genet 2013; ArrayExpress E-MTAB-1980; clinical: cBioPortal ccrcc_utokyo_2013"
-  ),
   #ER = IHC only, HER2 = SNP6 copy number: the status fields adjusted with RNA expression are not used
   METABRIC = list(
     cancer = "BRCA", kind = "CBIOPORTAL", accession = "brca_metabric",
     expected_n = NA_integer_,
     variables = c("age", "histology", "ER", "HER2", "grade", "tumor_size", "positive_nodes", "NPI", "stage"),
     loader = "load_metabric_external",
-    citation = "Curtis et al., Nature 2012; Pereira et al., Nat Commun 2016"
-  ),
-  #SENSITIVITY ANALYSIS only: METABRIC plus PR (not IHC-tested, likely RNA-derived; Lee 2020); main result = METABRIC
-  METABRIC_PR = list(
-    cancer = "BRCA", kind = "CBIOPORTAL", accession = "brca_metabric",
-    expected_n = NA_integer_,
-    variables = c("age", "histology", "ER", "HER2", "grade", "tumor_size", "positive_nodes", "NPI", "stage", "PR"),
-    loader = "load_metabric_pr_external",
     citation = "Curtis et al., Nature 2012; Pereira et al., Nat Commun 2016"
   )
 )
@@ -612,7 +580,6 @@ load_metabric_external <- function(
     
     ER = collapse_ER(sub("^positve$", "positive", tolower(meta$ER_IHC))),  #IHC only ("Positve" is the file's spelling)
     HER2 = .her2_snp6(meta$HER2_SNP6),  #DNA copy number: gain / neutral / loss
-    PR = collapse_PR(meta$PR_STATUS),  #sensitivity analysis only (METABRIC_PR)
     stage = .collapse_stage_any(meta$TUMOR_STAGE),  #stage 0 -> missing, as collapse_stage does for TCGA
     
     grade = ifelse(as.character(mark_na(meta$GRADE)) %in% c("1", "2", "3"), paste0("G", mark_na(meta$GRADE)), NA),
@@ -625,9 +592,6 @@ load_metabric_external <- function(
   .finalize_external(clinical, x, id, list(platform = "Illumina HT-12 v3"))
 }
 
-#sensitivity analysis: same patients and loader, PR added to the variable list
-load_metabric_pr_external <- function(...) load_metabric_external(..., id = "METABRIC_PR")
-
 #HER2 by SNP6 copy number; "UNDEF" is a missing code, not a category
 .her2_snp6 <- function(x) {
   z <- tolower(trimws(as.character(mark_na(x))))
@@ -635,9 +599,8 @@ load_metabric_pr_external <- function(...) load_metabric_external(..., id = "MET
   z
 }
 
-# LOADERS -- SCAN-B, GSE84437, CGGA (LGG/GBM), Beat AML, GSE14520, E-MTAB-1980
-# Written from the public dataset descriptions; not yet run against the real
-# files. .pick_field() stops with the list of available fields whenever an
+# LOADERS -- GSE84437, CGGA (LGG/GBM), Beat AML, GSE14520
+# .pick_field() stops with the list of available fields whenever an
 # expected field is missing, so a name mismatch is a one-line fix.
 
 # first matching field (normalised names); required fields stop loudly
@@ -687,58 +650,6 @@ load_metabric_pr_external <- function(...) load_metabric_external(..., id = "MET
   }
   data.table::fread(path, data.table = FALSE, check.names = FALSE, showProgress = FALSE,
                     na.strings = c("", "NA", "NaN", "N/A"))
-}
-
-#SCAN-B (GSE96058, RNA-seq; two sequencing platforms, one expression file)
-download_scanb_inputs <- function(force = FALSE) {
-  sp <- EXTERNAL_COHORTS$SCANB; d <- file.path(DIR_EXTERNAL_RAW, "SCANB")
-  mats <- vapply(sp$platforms, function(pl) .download_once(
-    .geo_platform_matrix_url(sp$accession, pl),
-    file.path(d, sprintf("%s-%s_series_matrix.txt.gz", sp$accession, pl)), force), character(1))
-  ex <- .download_once(.geo_suppl_url(sp$accession, sp$expression_file),
-                       file.path(d, sp$expression_file), force)
-  list(matrices = mats, expression = ex)
-}
-
-#1 / 0 -> positive / negative (SCAN-B's clinical ER, PgR and HER2 status)
-.pos_neg01 <- function(x) c("1" = "positive", "0" = "negative")[as.character(mark_na(x))]
-
-load_scanb_external <- function(force_download = FALSE) {
-  id <- "SCANB"; paths <- download_scanb_inputs(force_download)
-  hs <- lapply(paths$matrices, .read_geo_header)          # one header per platform
-  all_cols <- unique(unlist(lapply(hs, names)))
-  p <- do.call(rbind, lapply(hs, function(h) { h[setdiff(all_cols, names(h))] <- NA; h[all_cols] }))
-  # technical replicates are excluded (their titles carry "repl")
-  p <- p[!grepl("repl", p$title, ignore.case = TRUE), , drop = FALSE]
-  e <- data.table::fread(paths$expression, data.table = FALSE, check.names = FALSE, showProgress = FALSE)
-  genes <- toupper(as.character(e[[1L]])); x0 <- t(as.matrix(e[, -1L, drop = FALSE]))
-  suppressWarnings(storage.mode(x0) <- "double")           # file is already log2-transformed
-  rownames(x0) <- names(e)[-1L]
-  x <- collapse_expression_to_genes(x0, genes)
-  # expression columns are sample TITLES (e.g. "F1"); map them to GEO accessions
-  x <- x[rownames(x) %in% p$title, , drop = FALSE]
-  p <- p[match(rownames(x), p$title), , drop = FALSE]
-  rownames(x) <- p$sample_id
-  node <- tolower(as.character(mark_na(.pick_field(p, c("lymph node group", "lymph node status"), id, "nodes"))))
-  clinical <- data.frame(
-    patient_id = p$sample_id,
-    OS = .as_event(.pick_field(p, c("overall survival event", "os event"), id, "OS event")),
-    OS.time = .as_num(.pick_field(p, c("overall survival days", "os days"), id, "OS time")),
-    age = .as_num(.pick_field(p, c("age at diagnosis", "age"), id, "age")),
-    ER = .pos_neg01(.pick_field(p, c("er status"), id, "ER")),  #GEO codes these 1/0
-    PR = .pos_neg01(.pick_field(p, c("pgr status", "pr status"), id, "PR")),
-    HER2 = .pos_neg01(.pick_field(p, c("her2 status"), id, "HER2")),
-    grade = mark_na(.pick_field(p, c("nhg", "grade"), id, "grade")),
-    tumor_size = .as_num(.pick_field(p, c("tumor size", "tumour size"), id, "tumour size")),
-    node_group = node,
-    ki67 = c("0" = "low", "1" = "high")[as.character(mark_na(.pick_field(p, c("ki67 status"), id, "Ki67")))],
-    node_status = tolower(as.character(mark_na(.pick_field(p, c("lymph node status"), id, "node status")))),
-    stringsAsFactors = FALSE)
-  # the series is described as untreated at sampling; any neoadjuvant flag present is enforced
-  neo <- .pick_field(p, c("neoadjuvant"), id, "neoadjuvant", required = FALSE)
-  if (any(!is.na(neo))) clinical <- clinical[is.na(neo) | .as_event(neo) != 1L, , drop = FALSE]
-  .finalize_external(clinical, x, id, list(platform = "Illumina RNA-seq (GPL11154 + GPL18573)",
-                                           expression_unit = "log2 FPKM as deposited"))
 }
 
 #GSE84437 (GPL6947)
@@ -886,75 +797,6 @@ load_gse14520_external <- function(force_download = FALSE) {
     clip = .as_num(.pick_field(cl, c("CLIP staging", "CLIP"), id, "CLIP score")),  #numeric 0-5; "." -> missing
     stringsAsFactors = FALSE)
   .finalize_external(clinical, x, id, list(platform = sp$platform))
-}
-
-#E-MTAB-1980 (ccRCC, Agilent 4x44K v2 = A-MEXP-2183)
-# In data/raw/external/E-MTAB-1980/ (zipped or unzipped): the processed expression,
-# the array design (A-MEXP-2183) and cBioPortal's ccrcc_utokyo_2013 study archive.
-.emtab_dir <- function() {
-  d <- file.path(DIR_EXTERNAL_RAW, c("E-MTAB-1980", "EMTAB1980"))
-  d <- d[dir.exists(d)]
-  if (!length(d)) stop("EMTAB1980: no folder data/raw/external/E-MTAB-1980")
-  d[1L]
-}
-
-#path to a file matching `pattern`: loose in `dir`, else extracted from a top-level zip/tar.gz
-.member_file <- function(dir, pattern, cohort_id) {
-  loose <- list.files(dir, pattern = pattern, full.names = TRUE, ignore.case = TRUE)
-  loose <- loose[!grepl("\\.(zip|gz|tgz)$", loose, ignore.case = TRUE)]
-  if (length(loose)) return(loose[1L])
-  arch <- list.files(dir, pattern = "\\.(zip|tar\\.gz|tgz)$", full.names = TRUE, ignore.case = TRUE)
-  for (a in arch) {
-    is_zip <- grepl("\\.zip$", a, ignore.case = TRUE)
-    nm <- if (is_zip) utils::unzip(a, list = TRUE)$Name else utils::untar(a, list = TRUE)
-    hit <- nm[grepl(pattern, basename(nm), ignore.case = TRUE)]
-    if (!length(hit)) next
-    td <- tempfile(); dir.create(td)
-    if (is_zip) utils::unzip(a, files = hit[1L], exdir = td) else utils::untar(a, files = hit[1L], exdir = td)
-    return(file.path(td, hit[1L]))
-  }
-  stop(cohort_id, ": no file matching '", pattern, "' in ", dir, " (loose or inside a zip/tar.gz)")
-}
-
-#tab-separated table with any line ending (cBioPortal and ADF files use CR); "#" lines dropped
-.read_tab_any_eol <- function(path) {
-  l <- readLines(path, warn = FALSE)
-  l <- l[nzchar(l) & !startsWith(l, "#")]
-  d <- utils::read.delim(text = l, check.names = FALSE, stringsAsFactors = FALSE,
-                         na.strings = c("", "NA"), quote = "", comment.char = "")
-  names(d) <- trimws(names(d))
-  d
-}
-
-load_emtab1980_external <- function(data_dir = .emtab_dir()) {
-  id <- "EMTAB1980"
-  ex  <- data.table::fread(.member_file(data_dir, "exp_log_quantile_normalized\\.txt$", id),
-                           data.table = FALSE, check.names = FALSE, showProgress = FALSE)
-  adf <- .read_tab_any_eol(.member_file(data_dir, "^A-MEXP-2183_comments\\.txt$", id))
-  pat <- .read_tab_any_eol(.member_file(data_dir, "^data_clinical_patient\\.txt$", id))
-  smp <- .read_tab_any_eol(.member_file(data_dir, "^data_clinical_sample\\.txt$", id))
-  #probe -> gene name from the array design; accessions and probe IDs are not gene names
-  gene <- adf[["Comment[GeneName]"]][match(ex[[1L]], adf[["Comment[AEReporterName]"]])]
-  gene[grepl("^(A_\\d|NM_|XM_|NR_|XR_|ENST|THC|BC\\d|AK\\d|lincRNA|chr)", gene)] <- NA
-  samp <- grep("^ccRCC-", names(ex), value = TRUE)
-  x0 <- t(as.matrix(ex[, samp, drop = FALSE])); storage.mode(x0) <- "double"  #already log2, quantile-normalised
-  x <- collapse_expression_to_genes(x0, gene)
-  #cBioPortal IDs ccRCC_N = ArrayExpress ccRCC-N
-  pid <- sub("_", "-", pat$PATIENT_ID, fixed = TRUE)
-  tnm <- toupper(smp$STAGE_AT_DIAGNOSIS[match(pat$PATIENT_ID, smp$PATIENT_ID)])  #e.g. pT1bN0M0
-  g   <- trimws(as.character(smp$GRADE[match(pat$PATIENT_ID, smp$PATIENT_ID)]))
-  m   <- ifelse(grepl("M[01]", tnm), sub(".*(M[01]).*", "\\1", tnm), NA)
-  clinical <- data.frame(
-    patient_id = pid,
-    OS = .as_event(pat$VITAL_STATUS),  #LIVING / DECEASED
-    OS.time = .as_num(pat$FOLLOW_UP_TIME_MONTHS) * DAYS_PER_MONTH,
-    age = .as_num(pat$AGE),
-    sex = .as_sex(pat$SEX),
-    grade = ifelse(g %in% c("1", "2", "3", "4"), paste0("G", g), NA),  #"Undetermined" -> NA
-    T = .extract_t(tnm), N = .extract_n(tnm), M = collapse_M(m),
-    stringsAsFactors = FALSE)
-  .finalize_external(clinical, x, id, list(platform = "Agilent 4x44K v2 (A-MEXP-2183)",
-                                           expression_unit = "log2 quantile-normalised, as deposited"))
 }
 
 validate_external_object <- function(dat, cohort_id = "external") {

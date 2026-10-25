@@ -1,5 +1,6 @@
-#Supplementary runtime figure: A median seconds per model fit on the robustness subsets, B hours for the full TCGA lattice
-#(measured for the full-lattice models, projected from seconds per fit for the others), C hours per external cohort,
+#Supplementary runtime figure: A median seconds per model fit on the robustness subsets (IPF-ridge and RNA score: on the full
+#lattice, <CODE>_rs run), B hours for the full TCGA lattice (measured for the full-lattice models, projected from seconds per
+#fit for CoxBoost, blockForest and the clinical RSF), C hours per external cohort,
 #D IPF-LASSO hours with and without the rescue refits, E median seconds per fit of the RNA-only model
 #Usage, from the project root: python figure_generation/runtime.py --results-dir results --out-dir figures
 import argparse, glob, os, re
@@ -13,10 +14,11 @@ SERIES = [("clin", "Clinical Cox", "secs_clin", "#898781", "o", True),
           ("rfclin", "Clinical RSF", "secs_rfclin", "#52514e", "v", False),
           ("fused", "IPF-LASSO", "secs_fused", "#2a78d6", "o", True),
           ("offset", "Offset (Volkmann)", "secs_offset", "#eb6834", "s", True),
-          ("ridge", "IPF-ridge", "secs_ridge", "#1baf7a", "D", False),
+          ("ridge", "IPF-ridge", "secs_ridge", "#1baf7a", "D", True),
           ("cb", "CoxBoost", "secs_cb", "#eda100", "^", False),
           ("bf", "blockForest", "secs_bf", "#e87ba4", "p", False),
-          ("score", "RNA score", "secs_score", "#008300", "P", False)]
+          ("score", "RNA score", "secs_score", "#008300", "P", True)]
+RS_KEYS = {"ridge", "score"}  #read from the full-lattice <CODE>_rs run, not from the robustness run
 STYLE = {k: (lab, col, mk, not full) for k, lab, _, col, mk, full in SERIES}  #label, colour, marker, projected?
 STYLE.update({"glmnet": ("glmnet only", "#2a78d6", "o", False),
               "rescue": ("with rescue refits", "#4a3aa7", "D", False)})
@@ -41,10 +43,17 @@ def collect_tcga(results_dir):
         main = pd.read_csv(os.path.join(results_dir, f"{code}_results.csv"), low_memory=False,
                            usecols=lambda c: c in ["n_vars", "is_anchor", "host", "n_train", "n_test", "secs_clin", "secs_fused", "secs_offset"])
         rob = pd.read_csv(os.path.join(results_dir, f"{code}_robust_results.csv"), low_memory=False)
+        rs = pd.read_csv(os.path.join(results_dir, f"{code}_rs_results.csv"), low_memory=False,
+                         usecols=lambda c: c in ["n_vars", "is_anchor", "secs_ridge", "secs_score"])
         base = dict(cancer=code, patients=int((main.n_train + main.n_test).iloc[0]), host=main.host.iloc[0])
         cells = main.groupby("n_vars").size()  #lattice cells at each size (anchor = size 0)
         lat = rob[~rob.is_anchor.astype(str).str.upper().eq("TRUE")]  #panel A leaves out the omics-only anchor (no clinical model)
+        lat_rs = rs[~rs.is_anchor.astype(str).str.upper().eq("TRUE")]
         for key, lab, col, _, _, full in SERIES:
+            if key in RS_KEYS:
+                rows.append(dict(base, series=key, label=lab, secs_per_fit=lat_rs[col].median(), lattice_hours=rs[col].sum() / 3600,
+                                 lattice_how="measured", lattice_cells=int(cells.sum())))
+                continue
             if col not in rob: continue
             if full: total, how = main[col].sum() / 3600, "measured"
             else: total, how = float((per_size(rob, col, cells.index.values) * cells).sum()) / 3600, "projected"
@@ -57,9 +66,11 @@ def collect_tcga(results_dir):
         resc += [dict(base, series="glmnet", hours=glm), dict(base, series="rescue", hours=glm + extra, rescue_hours=extra)]
         #E: the omics-only anchor, RNA block only, every learner that fits one
         anc = rob[rob.is_anchor.astype(str).str.upper().eq("TRUE")]
+        anc_rs = rs[rs.is_anchor.astype(str).str.upper().eq("TRUE")]
         for key in RNA_ONLY:
             col = next(c for k, _, c, *_ in SERIES if k == key)
-            if col in anc: rna.append(dict(base, series=key, secs_per_fit=anc[col].median(), n_fits=int(anc[col].notna().sum())))
+            if key in RS_KEYS: rna.append(dict(base, series=key, secs_per_fit=anc_rs[col].median(), n_fits=int(anc_rs[col].notna().sum())))
+            elif col in anc: rna.append(dict(base, series=key, secs_per_fit=anc[col].median(), n_fits=int(anc[col].notna().sum())))
     return pd.DataFrame(rows), pd.DataFrame(resc), pd.DataFrame(rna)
 
 #panel C: the external cohorts, from their timing summaries (last row = the finished run)
