@@ -1,6 +1,6 @@
 # Transcriptomic lift across every clinical baseline
 
-![Example runs](https://github.com/simeonpetrinin/transcriptomic_clin_benchmark/actions/workflows/example.yml/badge.svg) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23483562.svg)](https://doi.org/10.5281/zenodo.23483562)
+![Example runs](https://github.com/simeonpetrinin/transcriptomic_clin_benchmark/actions/workflows/example.yml/badge.svg) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23677300.svg)](https://doi.org/10.5281/zenodo.23677300)
 
 Code for *The added predictive value of transcriptomic data across every clinical baseline: a pan-cancer survival prediction benchmark* (Petrinin and Baev, in preparation).
 
@@ -104,7 +104,7 @@ Run from the project root after the analyses above. Each script reads `results/`
 
 ## Code archive
 
-Each release of this code is archived on Zenodo; release v1.0: [doi:10.5281/zenodo.23483562](https://doi.org/10.5281/zenodo.23483562), where later versions are listed.
+This code is archived on Zenodo. Release v2.0.1 (the code used in the paper): [doi:10.5281/zenodo.23677300](https://doi.org/10.5281/zenodo.23677300); v2.0.1 is the same code as v2.0. Release v1.0: [doi:10.5281/zenodo.23483562](https://doi.org/10.5281/zenodo.23483562).
 
 ## Data and results
 
