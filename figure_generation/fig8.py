@@ -158,7 +158,7 @@ axC.tick_params(length=0)
 for s_ in axC.spines.values(): s_.set_visible(False)
 axC.set_title("C  Agreement between metrics across clinical subsets (Spearman ρ, median over cancers)",
               loc="left", fontsize=12, fontweight="bold", pad=10)
-fig.savefig(OUT, dpi=150, facecolor="white")
+fig.savefig(OUT, dpi=300, facecolor="white")
 
 #numbers quoted in the text
 print("median rho with IPF-Lasso:", B.median().round(2).to_dict())

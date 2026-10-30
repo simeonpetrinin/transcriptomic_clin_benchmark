@@ -369,7 +369,7 @@ def draw_triangle(fig, ax, P, shared_order, fs=1.0):  #fs scales every font size
 #drawn at print size (170 mm wide), so the font sizes are the printed sizes
 def main_figure(R, P, A, B, out_png, fs=0.75):
     shared, order_c, order_v = layout(R)
-    fig = plt.figure(figsize=(6.7, 9.4), dpi=300); fig.patch.set_facecolor(SURF)
+    fig = plt.figure(figsize=(6.7, 8.8), dpi=600); fig.patch.set_facecolor(SURF)
     gs = fig.add_gridspec(3, 2, height_ratios=[1, 1, 1.25], width_ratios=[1.1, 1], hspace=0.42, wspace=0.3,
                           left=0.15, right=0.93, top=0.955, bottom=0.085)
     a1, a2 = fig.add_subplot(gs[0, :]), fig.add_subplot(gs[1, :])

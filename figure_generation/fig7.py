@@ -134,6 +134,6 @@ for (i, j), c in tb.get_celld().items():
     c.set_edgecolor('#ccc'); c.set_linewidth(0.4)
     if i == 0: c.set_facecolor('#eeeeee'); c.set_text_props(fontweight='bold')
     if j == 2 and i > 0: c._loc = 'left'
-fig.savefig(OUT + 'fig7.png', dpi=300, bbox_inches='tight', pad_inches=0.05)
+fig.savefig(OUT + 'fig7.png', dpi=600, bbox_inches='tight', pad_inches=0.05)
 print(T[['cohort', 'tcga', 'n_subsets', 'pct_better', 'loss', 'slope', 'slope_noise_checked', 'cross', 'pct_resamples_crossing',
          'matched_subsets', 'spearman_tcga_vs_ext', 'pearson_tcga_vs_ext']].round(3).to_string(index=False))

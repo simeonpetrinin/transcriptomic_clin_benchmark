@@ -27,7 +27,7 @@ def subsets(c):
 data = {c: subsets(c) for c, _ in COHORTS}
 for metric, label, lower in [("ibs", "IBS", True), ("dcal", "D-calibration (χ²)", True)]:
     nrow = -(-len(COHORTS) // 3)
-    fig, axes = plt.subplots(nrow, 3, figsize=(11, 11 * nrow / 3), dpi=150)
+    fig, axes = plt.subplots(nrow, 3, figsize=(11, 3.5 * nrow), dpi=300)
     for ax in axes.flat[len(COHORTS):]: ax.axis("off")
     for ax, (c, t) in zip(axes.flat, COHORTS):
         s = data[c][[f"{metric}_clin", f"{metric}_fused"]].dropna()

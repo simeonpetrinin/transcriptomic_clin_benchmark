@@ -22,7 +22,7 @@ def curves(D, order):
     return pd.DataFrame(rows)
 
 def figure(R, out_png):
-    fig, (a, b) = plt.subplots(1, 2, figsize=(6.7, 2.9), dpi=300, gridspec_kw=dict(wspace=0.32)); fig.patch.set_facecolor(SURF)
+    fig, (a, b) = plt.subplots(1, 2, figsize=(6.7, 2.9), dpi=600, gridspec_kw=dict(wspace=0.32)); fig.patch.set_facecolor(SURF)
     for ax in (a, b):
         ax.set_facecolor(SURF); ax.grid(color=GRID, lw=0.4); ax.set_axisbelow(True); ax.tick_params(colors=INK2, labelsize=7, width=0.6, length=2.5)
         for sp in ["top", "right"]: ax.spines[sp].set_visible(False)

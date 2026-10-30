@@ -72,7 +72,7 @@ def draw(D, order, out_png):
           Line2D([], [], color="#c0304f", lw=1, label="90% interval, weakest (Nadeau–Bengio)"),
           Line2D([], [], color="#b9b7ae", lw=2.5, label="shift in lift from strongest to weakest baseline")]
     c3.legend(handles=hs, loc="upper center", bbox_to_anchor=(0.5, -0.1), ncol=1, frameon=False, fontsize=7.5)
-    plt.savefig(out_png, facecolor=SURF, bbox_inches="tight"); plt.close(fig)
+    plt.savefig(out_png, facecolor=SURF, bbox_inches="tight", dpi=300); plt.close(fig)
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()

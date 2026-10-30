@@ -118,7 +118,7 @@ cax = lg.inset_axes([0.05, 0.1, 0.9, 0.08])
 cb = fig.colorbar(plt.cm.ScalarMappable(norm=plt.Normalize(0, vmax), cmap=cmap), cax=cax, orientation='horizontal')
 cb.set_label('clinical variables in the baseline', fontsize=5.8, labelpad=1); cb.ax.tick_params(labelsize=5.5, width=0.5, length=2, pad=1)
 cb.outline.set_linewidth(0.5)
-fig.savefig(OUT + 'fig6.png', dpi=300)
+fig.savefig(OUT + 'fig6.png', dpi=600)
 pd.DataFrame(rows).to_csv(OUT + 'fig6_metrics.csv', index=False)
 print(pd.DataFrame(rows)[['cancer', 'repeats', 'loss', 'loss_lo', 'loss_hi', 'slope', 'slope_lo', 'slope_hi',
                           'slope_noise_checked', 'cross', 'cross_lo', 'cross_hi', 'pct_resamples_crossing']].to_string(index=False))
