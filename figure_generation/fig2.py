@@ -9,7 +9,7 @@ from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 from common import collect
 
-SURF, INK, INK2, MUTED, BAND = "#fcfcfb", "#0b0b0b", "#52514e", "#898781", "#efeee9"
+SURF, INK, INK2, MUTED, BAND = "#ffffff", "#0b0b0b", "#52514e", "#898781", "#efeee9"
 MARGIN = 0.01
 BOX = {"helps": "#c98500", "negligible": "#8f8172", "cant_tell": "#d6d4cc", "hurts": "#4a3aa7"}
 BOX_LAB = {"helps": "RNA helps", "negligible": "negligible (inside ±0.01)", "cant_tell": "can't tell", "hurts": "RNA hurts"}

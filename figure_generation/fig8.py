@@ -102,8 +102,10 @@ A = pd.DataFrame(A).T; B = pd.DataFrame(B).T
 order = A.sort_values("fused").index
 summ = lambda v: (np.nanmedian(v), np.nanpercentile(v, 25), np.nanpercentile(v, 75), int(np.sum(np.isfinite(v))))
 
-fig = plt.figure(figsize=(15, 18.5), dpi=150)
-gs = fig.add_gridspec(2, 2, height_ratios=[1.45, 0.8], hspace=0.14, wspace=0.08, left=0.07, right=0.98, top=0.965, bottom=0.04)
+#drawn at print size (170 mm wide), so the font sizes are the printed sizes
+FS = dict(cell=6, tick=6.5, title=7.5, cellC=7)
+fig = plt.figure(figsize=(6.7, 8.35), dpi=300)
+gs = fig.add_gridspec(2, 2, height_ratios=[1.6, 0.78], hspace=0.2, wspace=0.12, width_ratios=[6, 5.2], left=0.12, right=0.995, top=0.9, bottom=0.04)
 
 #panel A: median lift x 100
 gold_violet = LinearSegmentedColormap.from_list("gv", ["#6A51A3", "#F2F0EC", "#C8860A"])
@@ -113,11 +115,11 @@ lim = np.nanmax(np.abs(M))
 axA.imshow(M, cmap=gold_violet, norm=TwoSlopeNorm(0, -lim, lim), aspect="auto")
 for i in range(M.shape[0]):
     for j in range(M.shape[1]):
-        axA.text(j, i, f"{M[i, j]:.1f}", ha="center", va="center", fontsize=9, color=INK)
-axA.set_xticks(range(len(ARMS))); axA.set_xticklabels([l for _, l in ARMS], fontsize=9.5)
-axA.set_yticks(range(len(order))); axA.set_yticklabels([f"{c} ({int(A.loc[c, 'n'])})" for c in order], fontsize=9.5)
-axA.xaxis.tick_top(); axA.tick_params(length=0)
-axA.set_title("A  Median RNA lift across subsets (ΔC × 100)", loc="left", fontsize=12, fontweight="bold", pad=38)
+        axA.text(j, i, f"{M[i, j]:.1f}", ha="center", va="center", fontsize=FS["cell"], color=INK)
+axA.set_xticks(range(len(ARMS))); axA.set_xticklabels([l for _, l in ARMS], fontsize=FS["tick"] - 0.5, rotation=90, va="bottom", linespacing=1.0)
+axA.set_yticks(range(len(order))); axA.set_yticklabels([f"{c} ({int(A.loc[c, 'n'])})" for c in order], fontsize=FS["tick"])
+axA.xaxis.tick_top(); axA.tick_params(length=0, pad=2)
+axA.set_title("A  Median RNA lift across subsets\n(ΔC × 100)", loc="left", fontsize=FS["title"], fontweight="bold", pad=52, x=-0.17)
 for s_ in axA.spines.values(): s_.set_visible(False)
 
 #panel B: Spearman with IPF-Lasso
@@ -128,12 +130,12 @@ axB.imshow(Mb, cmap=greens, norm=Normalize(-0.2, 1), aspect="auto")
 for i in range(Mb.shape[0]):
     for j in range(Mb.shape[1]):
         v = Mb[i, j]
-        axB.text(j, i, "–" if np.isnan(v) else f"{v:.2f}", ha="center", va="center", fontsize=9,
+        axB.text(j, i, "–" if np.isnan(v) else f"{v:.2f}", ha="center", va="center", fontsize=FS["cell"],
                  color="white" if v > 0.6 else INK)
-axB.set_xticks(range(len(ARMS) - 1)); axB.set_xticklabels([l for _, l in ARMS[1:]], fontsize=9.5)
-axB.set_yticks(range(len(order))); axB.set_yticklabels(order, fontsize=9.5)
-axB.xaxis.tick_top(); axB.tick_params(length=0)
-axB.set_title("B  Same ranking of subsets as IPF-Lasso? (Spearman ρ)", loc="left", fontsize=12, fontweight="bold", pad=38)
+axB.set_xticks(range(len(ARMS) - 1)); axB.set_xticklabels([l for _, l in ARMS[1:]], fontsize=FS["tick"] - 0.5, rotation=90, va="bottom", linespacing=1.0)
+axB.set_yticks(range(len(order))); axB.set_yticklabels(order, fontsize=FS["tick"])
+axB.xaxis.tick_top(); axB.tick_params(length=0, pad=2)
+axB.set_title("B  Same ranking of subsets as IPF-Lasso?\n(Spearman ρ)", loc="left", fontsize=FS["title"], fontweight="bold", pad=52, x=-0.12)
 for s_ in axB.spines.values(): s_.set_visible(False)
 
 #panel C: metric reliability (diagonal) and agreement (below)
@@ -149,16 +151,16 @@ for i, a in enumerate(MET):
         txt[(i, j)] = f"{med:.2f}\n[{lo:.2f} to {hi:.2f}]" + (f"\nn = {n}" if n < len(CANCERS) else "")
 axC.imshow(np.ma.masked_invalid(cell), cmap=blues, norm=Normalize(0, 1), aspect="auto")
 for (i, j), t in txt.items():
-    axC.text(j, i, t, ha="center", va="center", fontsize=11, color="white" if cell[i, j] > 0.6 else INK)
+    axC.text(j, i, t, ha="center", va="center", fontsize=FS["cellC"], color="white" if cell[i, j] > 0.6 else INK, linespacing=1.15)
     if i == j:
-        axC.add_patch(plt.Rectangle((j - 0.5, i - 0.5), 1, 1, fill=False, lw=2, ec=INK))
-axC.set_xticks(range(k)); axC.set_xticklabels(MLAB, fontsize=12)
-axC.set_yticks(range(k)); axC.set_yticklabels(MLAB, fontsize=12)
-axC.tick_params(length=0)
+        axC.add_patch(plt.Rectangle((j - 0.5, i - 0.5), 1, 1, fill=False, lw=1.2, ec=INK))
+axC.set_xticks(range(k)); axC.set_xticklabels(MLAB, fontsize=FS["tick"] + 0.5)
+axC.set_yticks(range(k)); axC.set_yticklabels(MLAB, fontsize=FS["tick"] + 0.5)
+axC.tick_params(length=0, pad=2)
 for s_ in axC.spines.values(): s_.set_visible(False)
 axC.set_title("C  Agreement between metrics across clinical subsets (Spearman ρ, median over cancers)",
-              loc="left", fontsize=12, fontweight="bold", pad=10)
-fig.savefig(OUT, dpi=410, facecolor="white")
+              loc="left", fontsize=FS["title"], fontweight="bold", pad=6, x=-0.07)
+fig.savefig(OUT, dpi=960, facecolor="white", bbox_inches="tight", pad_inches=0.03)
 
 #numbers quoted in the text
 print("median rho with IPF-Lasso:", B.median().round(2).to_dict())

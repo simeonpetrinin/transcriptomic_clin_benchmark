@@ -8,7 +8,7 @@ import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
 matplotlib.rcParams["font.family"] = ["Inter", "sans-serif", "DejaVu Sans"]  #font of the paper's figures; DejaVu Sans if Inter is not installed
 from common import collect
 
-SURF, INK, INK2, MUTED, GRID, BAND = "#fcfcfb", "#0b0b0b", "#52514e", "#898781", "#e1e0d9", "#efeee9"
+SURF, INK, INK2, MUTED, GRID, BAND = "#ffffff", "#0b0b0b", "#52514e", "#898781", "#e1e0d9", "#efeee9"
 MARGIN = 0.01
 MIN_CANCERS = 5  #median over cancers only where at least this many cancers have that many variables
 

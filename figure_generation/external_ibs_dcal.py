@@ -27,26 +27,27 @@ def subsets(c):
 data = {c: subsets(c) for c, _ in COHORTS}
 for metric, label, lower in [("ibs", "IBS", True), ("dcal", "D-calibration (χ²)", True)]:
     nrow = -(-len(COHORTS) // 3)
-    fig, axes = plt.subplots(nrow, 3, figsize=(11, 3.5 * nrow), dpi=300)
+    fig, axes = plt.subplots(nrow, 3, figsize=(6.7, 2.15 * nrow), dpi=300)  #print size (170 mm wide): font sizes are the printed sizes
     for ax in axes.flat[len(COHORTS):]: ax.axis("off")
     for ax, (c, t) in zip(axes.flat, COHORTS):
         s = data[c][[f"{metric}_clin", f"{metric}_fused"]].dropna()
         x, y = s.iloc[:, 0].values, s.iloc[:, 1].values
         lo, hi = min(x.min(), y.min()), max(x.max(), y.max()); pad = (hi - lo) * 0.06 or 0.01
-        ax.plot([lo - pad, hi + pad], [lo - pad, hi + pad], color=LINE, lw=1, ls="--", zorder=1)
-        ax.scatter(x, y, s=12 if len(x) > 100 else 22, color=PT, alpha=0.6, lw=0, zorder=2)
+        ax.plot([lo - pad, hi + pad], [lo - pad, hi + pad], color=LINE, lw=0.6, ls="--", zorder=1)
+        ax.scatter(x, y, s=2.5 if len(x) > 100 else 5, color=PT, alpha=0.6, lw=0, zorder=2)
         if len(x) > 2 and np.ptp(x) > 0:
             b = np.polyfit(x, y, 1); xx = np.array([x.min(), x.max()])
-            ax.plot(xx, b[1] + b[0] * xx, color=INK, lw=1.6, zorder=3)
-            ax.text(0.04, 0.95, f"slope {b[0]:.2f}\n{len(x)} subsets", transform=ax.transAxes, va="top", fontsize=8.5, color=INK)
+            ax.plot(xx, b[1] + b[0] * xx, color=INK, lw=0.9, zorder=3)
+            ax.text(0.04, 0.95, f"slope {b[0]:.2f}\n{len(x)} subsets", transform=ax.transAxes, va="top", fontsize=6, color=INK)
         ax.set_xlim(lo - pad, hi + pad); ax.set_ylim(lo - pad, hi + pad)
         if metric == "dcal" and hi / lo > 8:
             ax.set_xscale("log"); ax.set_yscale("log"); ax.set_xlim(lo * 0.9, hi * 1.1); ax.set_ylim(lo * 0.9, hi * 1.1)
             for a_ in (ax.xaxis, ax.yaxis): a_.set_minor_formatter(NullFormatter()); a_.set_major_formatter(ScalarFormatter())
         if ax.get_xscale() == "linear": ax.xaxis.set_major_locator(MaxNLocator(4)); ax.yaxis.set_major_locator(MaxNLocator(5))
-        ax.set_title(f"{c} ({t})", fontsize=10, color=INK)
-        ax.tick_params(labelsize=8, colors="#555555")
+        ax.set_title(f"{c} ({t})", fontsize=6.5, color=INK, pad=3)
+        ax.tick_params(labelsize=5.5, colors="#555555", width=0.5, length=2, pad=1.5); ax.tick_params(which="minor", width=0.4, length=1.2)
         for sp in ["top", "right"]: ax.spines[sp].set_visible(False)
-    fig.supxlabel(f"Clinical model {label}", fontsize=11); fig.supylabel(f"Fused model {label}", fontsize=11)
-    fig.tight_layout(rect=(0.02, 0.02, 1, 1))
-    fig.savefig(f"{OUT}_{metric}.png", facecolor="white", dpi=560); plt.close(fig)
+        for sp in ["left", "bottom"]: ax.spines[sp].set_linewidth(0.6)
+    fig.supxlabel(f"Clinical model {label}", fontsize=7); fig.supylabel(f"Fused model {label}", fontsize=7)
+    fig.tight_layout(rect=(0.02, 0.02, 1, 1), h_pad=1.2, w_pad=1.0)
+    fig.savefig(f"{OUT}_{metric}.png", facecolor="white", dpi=920); plt.close(fig)

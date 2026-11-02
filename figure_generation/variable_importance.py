@@ -13,7 +13,7 @@ from matplotlib.colors import LinearSegmentedColormap, TwoSlopeNorm
 CODES = ["BLCA", "BRCA", "CESC", "COAD", "ESCA", "GBM", "HNSC", "KIRC", "KIRP", "LAML", "LGG", "LIHC",
          "LUAD", "LUSC", "OV", "PAAD", "READ", "SARC", "SKCM", "STAD", "UCEC"]
 MIN_CANCERS = 3  #a variable in at least this many cancers gets its own row in the pan-cancer grid
-SURF, INK, INK2, MUTED, GRID = "#fcfcfb", "#0b0b0b", "#52514e", "#898781", "#e1e0d9"
+SURF, INK, INK2, MUTED, GRID = "#ffffff", "#0b0b0b", "#52514e", "#898781", "#e1e0d9"
 MARGIN = 0.01  #the fixed equivalence margin, also used for interactions
 FOLD = {}  #(cancer, game) -> fold-level Shapley values, variables, test/train ratio, usable; for the summed row of panel A
 GREY_UNSURE, GREY_NEGL = np.array(matplotlib.colors.to_rgba("#b9b7ae")), np.array(matplotlib.colors.to_rgba("#e4e3dd"))
@@ -231,7 +231,7 @@ def draw_grid(fig, ax, R, game, title, fmt, unit, shared, order_c, order_v, Bv=N
             if np.isnan(M[i, j]): continue
             strong = box.get((i, j), "above") in ("above", "below")
             dark = strong and min(abs(M[i, j]) / lim, 1) > 0.55
-            ax.text(j, i, fmt(M[i, j]), ha="center", va="center", fontsize=6.5 * fs, color="white" if dark else (INK if strong else INK2),
+            ax.text(j, i, fmt(M[i, j]), ha="center", va="center", fontsize=7 * fs, color="white" if dark else (INK if strong else INK2),
                     fontweight="bold" if strong else "normal")
     for i in range(M.shape[0]):  #pan-cancer median and the number of cancers with the variable
         if np.isfinite(M[i]).any():
@@ -351,7 +351,7 @@ def draw_triangle(fig, ax, P, shared_order, fs=1.0):  #fs scales every font size
                     w = 0.86 * n_part / len(x)
                     if w > 0: ax.add_patch(plt.Rectangle((left, r - 0.32), w, 0.36, facecolor=col, edgecolor=SURF, lw=0.6))
                     left += w
-                ax.text(c, r + 0.27, f"of {len(x)}", ha="center", va="center", fontsize=6 * fs, color=INK2)
+                ax.text(c, r + 0.27, f"of {len(x)}", ha="center", va="center", fontsize=6.7 * fs, color=INK2)
     ax.plot([-0.5, k - 0.5], [-0.5, k - 0.5], color=INK2, lw=0.8 * fs)
     ax.set_xlim(-0.5, k - 0.5); ax.set_ylim(k - 0.5, -0.5); ax.set_aspect("equal")
     ax.set_xticks(range(k)); ax.set_xticklabels(shared_order, rotation=90, fontsize=8 * fs, color=INK)

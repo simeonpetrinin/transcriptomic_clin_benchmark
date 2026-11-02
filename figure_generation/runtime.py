@@ -3,7 +3,7 @@
 #fit for CoxBoost, blockForest and the clinical RSF), C hours per external cohort,
 #D IPF-LASSO hours with and without the rescue refits, E median seconds per fit of the RNA-only model
 #Usage, from the project root: python figure_generation/runtime.py --results-dir results --out-dir figures
-import argparse, glob, os, re
+import argparse, glob, os, re, textwrap
 import numpy as np, pandas as pd
 import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
 
@@ -90,30 +90,30 @@ def collect_external(results_dir):
 #one panel of lines across cohorts, labelled at the right end
 def panel(ax, D, val, order, ticks, ylab, xlab, letter, log=True):
     x = np.arange(len(order)); pos = dict(zip(order, x)); ends = []
-    ax.set_facecolor("#fcfcfb")
+    ax.set_facecolor("#ffffff")
     if log: ax.set_yscale("log")
     for key in D.series.unique():
         lab, colour, mk, proj = STYLE[key]
         proj = proj and val == "lattice_hours"  #dashed, hollow = projected, not measured
         d = D[D.series == key].assign(x=lambda z: z.cancer.map(pos)).sort_values("x")
-        ax.plot(d.x, d[val], color=colour, lw=2, ls="--" if proj else "-", zorder=2)
-        ax.scatter(d.x, d[val], s=46, marker=mk, zorder=3, linewidths=1.6,
-                   facecolor="#fcfcfb" if proj else colour, edgecolor=colour)
+        ax.plot(d.x, d[val], color=colour, lw=0.9, ls="--" if proj else "-", zorder=2)
+        ax.scatter(d.x, d[val], s=8, marker=mk, zorder=3, linewidths=0.7,
+                   facecolor="#ffffff" if proj else colour, edgecolor=colour)
         ends.append((lab, d[val].iloc[-1]))
     lo, hi = ax.get_ylim()
     tf = (np.log10, lambda v: 10 ** v) if log else (lambda v: v, lambda v: v)
-    ys = dodge([tf[0](v) for _, v in ends], (tf[0](hi) - tf[0](lo)) * 0.045)
+    ys = dodge([tf[0](v) for _, v in ends], (tf[0](hi) - tf[0](lo)) * 0.065)
     for (lab, v), y in zip(ends, ys):  #direct labels at the right end, nudged apart, with a thin leader
-        ax.plot([x[-1] + 0.15, x[-1] + 0.4], [v, tf[1](y)], color="#c3c2b7", lw=0.8)
-        ax.text(x[-1] + 0.45, tf[1](y), lab, color="#0b0b0b", fontsize=8.5, va="center")
-    ax.set_xticks(x); ax.set_xticklabels(ticks, rotation=90, fontsize=8.5, color="#0b0b0b")
-    ax.set_xlim(-0.5, x[-1] + 0.15 * len(order) + 1.2)
-    ax.set_xlabel(xlab, color="#52514e"); ax.set_ylabel(ylab, color="#0b0b0b", fontsize=10.5)
-    ax.text(-0.07, 1.02, letter, transform=ax.transAxes, fontsize=16, fontweight="bold", color="#0b0b0b")
-    ax.grid(axis="y", which="major", color="#e1e0d9", lw=.6); ax.set_axisbelow(True)
+        ax.plot([x[-1] + 0.15, x[-1] + 0.5], [v, tf[1](y)], color="#c3c2b7", lw=0.5)
+        ax.text(x[-1] + 0.6, tf[1](y), lab, color="#0b0b0b", fontsize=5.5, va="center")
+    ax.set_xticks(x); ax.set_xticklabels(ticks, rotation=90, fontsize=5.5, color="#0b0b0b")
+    ax.set_xlim(-0.5, x[-1] + 0.3 * len(order) + 2.2)
+    ax.set_xlabel(xlab, color="#52514e", fontsize=6, labelpad=2); ax.set_ylabel(textwrap.fill(ylab, 34), color="#0b0b0b", fontsize=6, labelpad=2)
+    ax.text(-0.2, 1.03, letter, transform=ax.transAxes, fontsize=9, fontweight="bold", color="#0b0b0b")
+    ax.grid(axis="y", which="major", color="#e1e0d9", lw=.4); ax.set_axisbelow(True)
     for s in ["top", "right"]: ax.spines[s].set_visible(False)
-    for s in ["left", "bottom"]: ax.spines[s].set_color("#c3c2b7")
-    ax.tick_params(colors="#52514e")
+    for s in ["left", "bottom"]: ax.spines[s].set_color("#c3c2b7"); ax.spines[s].set_linewidth(0.6)
+    ax.tick_params(colors="#52514e", labelsize=5.5, width=0.5, length=2, pad=1.5); ax.tick_params(which="minor", width=0.4, length=1.2)
 
 def draw(D, X, R, G, out_png):
     tc = D.drop_duplicates("cancer").sort_values("patients")
@@ -122,10 +122,11 @@ def draw(D, X, R, G, out_png):
     xc = X.drop_duplicates("cancer").sort_values("patients")
     x_ticks = [f"{c} ({k}, {p})" for c, k, p in zip(xc.cancer, xc.comparator, xc.patients)]
     xlab = "Cancer (patients), ordered by number of patients"
-    fig = plt.figure(figsize=(21, 15.5), dpi=150); fig.patch.set_facecolor("#fcfcfb")
-    gs = fig.add_gridspec(2, 6, height_ratios=[1, 1], left=0.045, right=0.99, top=0.95, bottom=0.11, wspace=0.75, hspace=0.42)  #fixed margins: tight_layout gives up with the right-end labels
-    axA, axB = fig.add_subplot(gs[0, :3]), fig.add_subplot(gs[0, 3:])
-    axC, axD, axE = fig.add_subplot(gs[1, :2]), fig.add_subplot(gs[1, 2:4]), fig.add_subplot(gs[1, 4:])
+    #drawn at print size (170 mm wide), so the font sizes are the printed sizes; two panels per row
+    fig = plt.figure(figsize=(6.7, 8.6), dpi=300); fig.patch.set_facecolor("#ffffff")
+    gs = fig.add_gridspec(3, 2, left=0.085, right=0.995, top=0.935, bottom=0.075, wspace=0.42, hspace=0.95)  #fixed margins: tight_layout gives up with the right-end labels
+    axA, axB = fig.add_subplot(gs[0, 0]), fig.add_subplot(gs[0, 1])
+    axC, axD, axE = fig.add_subplot(gs[1, 0]), fig.add_subplot(gs[1, 1]), fig.add_subplot(gs[2, 0])
     panel(axA, D, "secs_per_fit", t_order, t_ticks, "Median runtime per model fit (seconds, 1 core)", xlab, "A")
     panel(axB, D, "lattice_hours", t_order, t_ticks, "Runtime for the full lattice (hours, 1 core)", xlab, "B")
     panel(axC, X, "lattice_hours", xc.cancer.tolist(), x_ticks, "Runtime for the full lattice (hours, 1 core)",
@@ -133,10 +134,10 @@ def draw(D, X, R, G, out_png):
     R = R.sort_values("series", key=lambda z: z.map({"rescue": 0, "glmnet": 1}), kind="stable")  #glmnet drawn on top: unrescued cancers stay blue
     panel(axD, R, "hours", t_order, t_ticks, "IPF-LASSO runtime for the full lattice (hours, 1 core)", xlab, "D")
     panel(axE, G, "secs_per_fit", t_order, t_ticks, "RNA-only model: median runtime per fit (seconds, 1 core)", xlab, "E")
-    hs = [plt.Line2D([], [], color=c, marker=m, lw=2, markersize=7) for _, _, _, c, m, _ in SERIES]
-    hs += [plt.Line2D([], [], color="#52514e", lw=2), plt.Line2D([], [], color="#52514e", lw=2, ls="--", marker="o", mfc="#fcfcfb")]
-    fig.legend(hs, [l for _, l, *_ in SERIES] + ["measured", "projected"], loc="upper center", ncol=10, frameon=False, fontsize=9)
-    plt.savefig(out_png, facecolor=fig.get_facecolor(), dpi=300)
+    hs = [plt.Line2D([], [], color=c, marker=m, lw=0.9, markersize=3.5) for _, _, _, c, m, _ in SERIES]
+    hs += [plt.Line2D([], [], color="#52514e", lw=0.9), plt.Line2D([], [], color="#52514e", lw=0.9, ls="--", marker="o", markersize=3.5, mfc="#ffffff")]
+    fig.legend(hs, [l for _, l, *_ in SERIES] + ["measured", "projected"], loc="upper center", ncol=5, frameon=False, fontsize=6, handlelength=2.2, columnspacing=1.2)
+    plt.savefig(out_png, facecolor=fig.get_facecolor(), dpi=920)
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
