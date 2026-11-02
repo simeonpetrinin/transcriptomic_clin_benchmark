@@ -208,10 +208,16 @@ def report_baselines(results_dir, D, F):
     P = {}
     for c in CODES:
         clin = D[c]["s"].c_ref.values; P[c] = {k: 100 * np.mean(clin <= D[c][k][1]) for k in ["herrmann", "jardillier", "survboard"] if k in D[c]}
-        f = os.path.join(results_dir, f"{c}_published_subset_summary_norescue.csv")  #Herrmann's variables recoded with our preprocessing
+        #Herrmann's variables recoded with our preprocessing (Table S13): a separate run ("herrmann_ours") when the recoded set is not a
+        #lattice subset, otherwise the lattice subset itself (listed in <cancer>_published_ours.csv)
+        f = os.path.join(results_dir, f"{c}_published_subset_summary_norescue.csv")
         if os.path.exists(f):
             o = pd.read_csv(f); o = o[o.arm == "fused"].merge(pd.read_csv(os.path.join(results_dir, f"{c}_published_specs.csv"))[["subset_id", "spec"]], on="subset_id")
             o = o[o.spec == "herrmann_ours"]
+            if len(o): P[c]["herrmann recoded"] = 100 * np.mean(clin <= o.c_ref.iloc[0])
+        f = os.path.join(results_dir, f"{c}_published_ours.csv")
+        if os.path.exists(f):
+            o = pd.read_csv(f); o = o[(o.paper == "herrmann") & (o.version == "ours")]
             if len(o): P[c]["herrmann recoded"] = 100 * np.mean(clin <= o.c_ref.iloc[0])
     P = pd.DataFrame(P).T
     h = P.herrmann.dropna()
