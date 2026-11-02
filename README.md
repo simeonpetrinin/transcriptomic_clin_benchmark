@@ -102,6 +102,11 @@ Run from the project root after the analyses above. Each script reads `results/`
 
 `common.py` holds the data loading shared by Figures 2-4.
 
+## Checking the paper against the results
+
+- `python scripts/check_figures.py --results-dir results` redraws every figure into a temporary folder and checks it against the submitted figures (SHA-256 in `figure_generation/paper_figures.sha256`). Byte identity needs the package versions in `requirements.txt` and the Inter font; add `--reference-dir <folder with the submitted PNGs>` to compare pixels when the bytes differ.
+- `python scripts/paper_numbers.py --results-dir results --processed-dir data/processed --figures-dir figures` prints the numbers quoted in the text that no figure script prints, each labelled with the section it appears in. Run `fig6.py` first; it reads `figures/fig6_metrics.csv`.
+
 ## Code archive
 
 This code is archived on Zenodo. Release v2.1 (the code used in the paper): [doi:10.5281/zenodo.23786213](https://doi.org/10.5281/zenodo.23786213); v2.1 is the code of v2.0.1 with the figures saved at print resolution. Release v2.0.1 (the same code as v2.0): [doi:10.5281/zenodo.23677300](https://doi.org/10.5281/zenodo.23677300). Release v1.0: [doi:10.5281/zenodo.23483562](https://doi.org/10.5281/zenodo.23483562).
