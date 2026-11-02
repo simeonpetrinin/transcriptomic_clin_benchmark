@@ -1,6 +1,6 @@
 # How Much Do Transcriptomic Data Add to Routine Clinical Prognostic Factors? A Pan-Cancer Evaluation Across Every Clinical Baseline
 
-![Example runs](https://github.com/simeonpetrinin/transcriptomic_clin_benchmark/actions/workflows/example.yml/badge.svg) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23786213.svg)](https://doi.org/10.5281/zenodo.23786213)
+![Example runs](https://github.com/simeonpetrinin/transcriptomic_clin_benchmark/actions/workflows/example.yml/badge.svg) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23891642.svg)](https://doi.org/10.5281/zenodo.23891642)
 
 Code for the paper (Petrinin and Baev, in preparation).
 
@@ -109,7 +109,7 @@ Run from the project root after the analyses above. Each script reads `results/`
 
 ## Code archive
 
-This code is archived on Zenodo. Release v2.1 (the code used in the paper): [doi:10.5281/zenodo.23786213](https://doi.org/10.5281/zenodo.23786213); v2.1 is the code of v2.0.1 with the figures saved at print resolution. Release v2.0.1 (the same code as v2.0): [doi:10.5281/zenodo.23677300](https://doi.org/10.5281/zenodo.23677300). Release v1.0: [doi:10.5281/zenodo.23483562](https://doi.org/10.5281/zenodo.23483562).
+This code is archived on Zenodo. Release v2.3 (the code used in the paper): [doi:10.5281/zenodo.23891642](https://doi.org/10.5281/zenodo.23891642); v2.3 has the same analysis as v2.0.1, with the figures drawn at print size and the scripts that check the paper against the results. Release v2.1: [doi:10.5281/zenodo.23786213](https://doi.org/10.5281/zenodo.23786213). Release v2.0.1 (the same code as v2.0): [doi:10.5281/zenodo.23677300](https://doi.org/10.5281/zenodo.23677300). Release v1.0: [doi:10.5281/zenodo.23483562](https://doi.org/10.5281/zenodo.23483562).
 
 ## Data and results
 
