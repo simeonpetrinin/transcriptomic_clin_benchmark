@@ -114,7 +114,7 @@ def draw(D, order, out_base):
     for ax in (a, b, c, d):
         for coll in ax.collections:  #smaller markers for the smaller canvas
             if hasattr(coll, "get_sizes") and len(coll.get_sizes()): coll.set_sizes(coll.get_sizes() * 0.45)
-    fig.savefig(out_base + ".pdf", facecolor=SURF); fig.savefig(out_base + ".png", facecolor=SURF, dpi=600); plt.close(fig)
+    fig.savefig(out_base + ".pdf", facecolor=SURF); fig.savefig(out_base + ".png", facecolor=SURF, dpi=900); plt.close(fig)
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()

@@ -382,7 +382,7 @@ def main_figure(R, P, A, B, out_png, fs=0.75):
     for ax, letter, label in [(a1, "A", "Shapley values"), (b1, "B", "Are the variables additive?")]:
         ax.text(-0.14 if ax is a1 else -0.24, 1.13 if ax is a1 else 1.09, letter, transform=ax.transAxes, fontsize=11, fontweight="bold", color=INK)
         ax.text(-0.10 if ax is a1 else -0.17, 1.13 if ax is a1 else 1.09, label, transform=ax.transAxes, fontsize=8, fontweight="bold", color=INK)
-    plt.savefig(out_png, facecolor=SURF); plt.close(fig)
+    plt.savefig(out_png, facecolor=SURF, dpi=900); plt.close(fig)
 
 #every cancer's interaction matrix, upper triangle clinical C, lower triangle RNA's lift
 def interaction_by_cancer(R, P, B, out_png):

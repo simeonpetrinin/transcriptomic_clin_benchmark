@@ -41,7 +41,7 @@ def figure(R, out_png):
     a.legend(frameon=False, fontsize=6.5, loc="lower right", handlelength=2.2); b.legend(frameon=False, fontsize=6.5, loc="upper right", handlelength=2.2)
     a.set_title("A  Clinical C grows with each added\n     variable, then levels off", fontsize=8, color=INK, loc="left", fontweight="bold", x=-0.25)
     b.set_title("B  RNA's lift shrinks as\n     variables are added", fontsize=8, color=INK, loc="left", fontweight="bold", x=-0.25)
-    plt.savefig(out_png, facecolor=SURF, bbox_inches="tight", pad_inches=0.04); plt.close(fig)
+    plt.savefig(out_png, facecolor=SURF, bbox_inches="tight", pad_inches=0.04, dpi=1050); plt.close(fig)
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()

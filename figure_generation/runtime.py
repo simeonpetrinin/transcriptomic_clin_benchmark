@@ -136,7 +136,7 @@ def draw(D, X, R, G, out_png):
     hs = [plt.Line2D([], [], color=c, marker=m, lw=2, markersize=7) for _, _, _, c, m, _ in SERIES]
     hs += [plt.Line2D([], [], color="#52514e", lw=2), plt.Line2D([], [], color="#52514e", lw=2, ls="--", marker="o", mfc="#fcfcfb")]
     fig.legend(hs, [l for _, l, *_ in SERIES] + ["measured", "projected"], loc="upper center", ncol=10, frameon=False, fontsize=9)
-    plt.savefig(out_png, facecolor=fig.get_facecolor())
+    plt.savefig(out_png, facecolor=fig.get_facecolor(), dpi=300)
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()

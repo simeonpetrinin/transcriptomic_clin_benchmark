@@ -49,4 +49,4 @@ for metric, label, lower in [("ibs", "IBS", True), ("dcal", "D-calibration (χ²
         for sp in ["top", "right"]: ax.spines[sp].set_visible(False)
     fig.supxlabel(f"Clinical model {label}", fontsize=11); fig.supylabel(f"Fused model {label}", fontsize=11)
     fig.tight_layout(rect=(0.02, 0.02, 1, 1))
-    fig.savefig(f"{OUT}_{metric}.png", facecolor="white"); plt.close(fig)
+    fig.savefig(f"{OUT}_{metric}.png", facecolor="white", dpi=560); plt.close(fig)

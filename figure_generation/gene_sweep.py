@@ -94,7 +94,7 @@ def draw(S, dropped, out_png):
             "Ordered by 500-gene ΔC median.\n500 genes = main lattice with rescued cells; rescued cells are left out of the −ΔD-calibration row (not recomputed). "
             "Cells dropped because a setting failed: " + (", ".join(big) if big else "under 20% in every cancer") + ".")
     fig.text(0.01, 0.005, foot, fontsize=8, color="#898781")
-    plt.tight_layout(rect=(0, 0.03, 1, 0.98)); plt.savefig(out_png, facecolor=fig.get_facecolor())
+    plt.tight_layout(rect=(0, 0.03, 1, 0.98)); plt.savefig(out_png, facecolor=fig.get_facecolor(), dpi=310)
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
