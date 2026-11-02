@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "If you use this code, please cite it as below."
-title: "Code for: The added predictive value of transcriptomic data across every clinical baseline: a pan-cancer survival prediction benchmark"
+title: "Code for: How Much Do Transcriptomic Data Add to Routine Clinical Prognostic Factors? A Pan-Cancer Evaluation Across Every Clinical Baseline"
 authors:
   - family-names: Petrinin
     given-names: Simeon

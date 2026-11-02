@@ -1,8 +1,8 @@
-# Transcriptomic lift across every clinical baseline
+# How Much Do Transcriptomic Data Add to Routine Clinical Prognostic Factors? A Pan-Cancer Evaluation Across Every Clinical Baseline
 
 ![Example runs](https://github.com/simeonpetrinin/transcriptomic_clin_benchmark/actions/workflows/example.yml/badge.svg) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23786213.svg)](https://doi.org/10.5281/zenodo.23786213)
 
-Code for *The added predictive value of transcriptomic data across every clinical baseline: a pan-cancer survival prediction benchmark* (Petrinin and Baev, in preparation).
+Code for the paper (Petrinin and Baev, in preparation).
 
 For 21 TCGA cancers and 10 external cohorts, every combination of a prespecified set of clinical variables (14,011 clinical subsets in TCGA) is fitted with and without RNA-seq data in repeated nested cross-validation. Models: IPF-Lasso, the Volkmann offset model, IPF-ridge and an RNA-score model on the full lattice; CoxBoost and blockForest (against a clinical random survival forest) on 83 specifications per cancer (the RNA-only model, age alone, the full main set and 80 sampled subsets). Metrics: Uno's C-index, integrated Brier score, D-calibration and ICI.
 
@@ -112,7 +112,7 @@ Processed data, per-fold results and summaries for all cohorts: Zenodo, [doi:10.
 
 ## Citation
 
-Petrinin S, Baev M. The added predictive value of transcriptomic data across every clinical baseline: a pan-cancer survival prediction benchmark. In preparation.
+Petrinin S, Baev M. How Much Do Transcriptomic Data Add to Routine Clinical Prognostic Factors? A Pan-Cancer Evaluation Across Every Clinical Baseline. In preparation.
 
 ## License
 
